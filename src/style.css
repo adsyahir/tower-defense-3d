@@ -926,6 +926,26 @@ body.on-title #banner {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
+.built-by {
+  color: var(--text);
+}
+
+.built-by a {
+  /* Small text link, but padded to a comfortable touch target. */
+  display: inline-block;
+  padding: 6px 2px;
+  color: var(--gold);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1.5px solid rgba(255, 207, 63, 0.5);
+  line-height: 1;
+}
+
+.built-by a:hover,
+.built-by a:focus-visible {
+  border-bottom-color: var(--gold);
+}
+
 #best-line:empty {
   display: none;
 }
