@@ -17,8 +17,8 @@ export default defineConfig({
         description: 'A 3D tower defense game that runs in your browser.',
         display: 'fullscreen',
         orientation: 'landscape',
-        background_color: '#1d2b22',
-        theme_color: '#1d2b22',
+        background_color: '#1b2430',
+        theme_color: '#1b2430',
         start_url: '.',
         scope: '.',
         icons: [

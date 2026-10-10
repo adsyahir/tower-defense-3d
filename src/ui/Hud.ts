@@ -16,7 +16,10 @@ export class Hud {
   private lives = $<HTMLElement>('#lives');
   private wave = $<HTMLElement>('#wave');
   private waveBtn = $<HTMLButtonElement>('#btn-wave');
+  private waveLabel = $<HTMLElement>('#btn-wave .wave-label');
   private speedBtn = $<HTMLButtonElement>('#btn-speed');
+  private speedLabel = $<HTMLElement>('#speed-label');
+  private root = $<HTMLElement>('#hud');
   private towerBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.tower-btn'));
 
   constructor(private game: Game, handlers: HudHandlers) {
@@ -49,10 +52,12 @@ export class Hud {
 
   setBuildType(type: TowerType | null): void {
     for (const btn of this.towerBtns) btn.classList.toggle('active', btn.dataset.tower === type);
+    this.root.classList.toggle('building', type !== null);
   }
 
   setSpeed(speed: number): void {
-    this.speedBtn.textContent = `${speed}×`;
+    this.speedLabel.textContent = `${speed}×`;
+    this.speedBtn.classList.toggle('on', speed > 1);
   }
 
   /** Re-applies costs, e.g. after the debug GUI edits balance. */
@@ -69,7 +74,15 @@ export class Hud {
     this.wave.textContent = `${s.wave}/${this.game.totalWaves}`;
     const canStart = s.phase === 'build';
     this.waveBtn.disabled = !canStart;
-    this.waveBtn.textContent = canStart ? (s.wave === 0 ? 'Start wave' : 'Next wave') : 'Wave in progress';
+    this.waveBtn.classList.toggle('ready', canStart);
+    this.waveBtn.classList.toggle('busy', s.phase === 'wave');
+    this.waveLabel.textContent = canStart
+      ? s.wave === 0
+        ? 'Start wave'
+        : `Wave ${s.wave + 1}`
+      : s.phase === 'wave'
+        ? 'Fighting…'
+        : 'Game over';
   }
 
   private pulse(el: HTMLElement): void {

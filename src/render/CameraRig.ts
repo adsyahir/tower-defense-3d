@@ -12,17 +12,17 @@ export class CameraRig {
   constructor(dom: HTMLElement, mapSize: { cols: number; rows: number }) {
     this.halfW = mapSize.cols / 2;
     this.halfH = mapSize.rows / 2;
-    this.camera.position.set(0, 13, 9);
+    this.camera.position.set(0, 12.6, 9.6);
 
     const c = new MapControls(this.camera, dom);
     c.enableDamping = true;
     c.dampingFactor = 0.12;
     c.screenSpacePanning = false; // pan across the ground plane
     c.minDistance = 6;
-    c.maxDistance = 28;
+    c.maxDistance = 30;
     c.maxPolarAngle = 1.2; // never look from below the ground
     c.touches = { ONE: TOUCH.PAN, TWO: TOUCH.DOLLY_ROTATE };
-    c.target.set(0, 0, 0.5);
+    c.target.set(0, 0, 0.8);
     c.update();
     this.controls = c;
   }
@@ -30,7 +30,7 @@ export class CameraRig {
   resize(width: number, height: number): void {
     this.camera.aspect = width / height;
     // Portrait-ish or narrow screens need a wider view to fit the map.
-    this.camera.fov = this.camera.aspect < 1.4 ? 60 : 50;
+    this.camera.fov = this.camera.aspect < 1.4 ? 60 : this.camera.aspect > 1.9 ? 46 : 50;
     this.camera.updateProjectionMatrix();
   }
 

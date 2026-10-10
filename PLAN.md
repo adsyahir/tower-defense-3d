@@ -2,7 +2,8 @@
 
 > **Status (2026-10-10):** Stages 0–10 are implemented: playable MVP with basic shapes, debug GUI, and PWA. Phone checks on a real device and deployment are still to do. **Next: stage 11 (Kenney models, tower types, upgrades, sound).**
 > Implementation notes that differ from the text below:
-> - Views map pool slot `i` → mesh `i` (`render/MeshPool.ts`) instead of acquiring meshes via spawn/remove events. This is simpler and allocation-free. Stage 11e death tweens will need a short-lived "corpse" mesh that's separate from the slot.
+> - Enemies, health bars and projectiles are drawn with one `InstancedMesh` per kind, rebuilt from the game pools each frame (allocation-free, constant draw calls). `render/MeshPool.ts` was removed. Death effects are pooled particles, not per-enemy "corpse" meshes.
+> - **Design pass (2026-10-10):** warm low-poly diorama look. Gradient sky + fog, warm key light; tile colour variation via `instanceColor`, sunken path, cliff base and a 2-tile meadow rim with merged procedural scenery (trees, rocks, bushes, flowers; one draw call; it never touches buildable tiles, so no logic change). Spawn portal and exit castle. Vertex-coloured, merged models from primitives (`render/style3d.ts` `GeoBuilder`): slime/runner/beetle enemies with hop/waddle, a stone cannon tower with recoil. Pooled juice in `render/Effects.ts` (death puffs, hit sparks, muzzle flash, landing dust, portal bursts, floating +gold sprites), hit flash, placement ghost + range ring, CSS wave banner and red edge flash on leak. HUD redone: Fredoka font, inline SVG icons, tower card, stateful wave button, end panel. Draw calls (desktop, shadows on, 7 towers): 53 before with 2 enemies; 51 after with 25 enemies. Before, the count grew with every enemy and projectile.
 > - Game state is split into `game.state` (phase/gold/lives/wave/time), `game.enemies`/`game.projectiles` (pools) and `game.towers`.
 > - In dev, `window.game` is exposed for console testing.
 
