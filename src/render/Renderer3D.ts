@@ -8,6 +8,7 @@ import {
   SRGBColorSpace,
   WebGLRenderer,
   type Camera,
+  type Material,
 } from 'three';
 import { quality } from '../platform/device';
 import { palette } from './style3d';
@@ -40,8 +41,9 @@ export class Renderer3D {
     // Warm, low-ish key light for long readable shadows.
     this.sun = new DirectionalLight('#ffe2b5', 2.6);
     this.sun.position.set(-7, 13, 8);
-    if (quality.shadows) {
-      this.sun.castShadow = true;
+    // Shadow setup is always configured so the Graphics setting can switch shadows on later.
+    {
+      this.sun.castShadow = quality.shadows;
       this.sun.shadow.mapSize.set(2048, 2048);
       this.sun.shadow.bias = -0.0004;
       this.sun.shadow.normalBias = 0.02;
@@ -70,6 +72,19 @@ export class Renderer3D {
   onResize(fn: ResizeFn): void {
     this.resizeFns.push(fn);
     fn(this.width, this.height);
+  }
+
+  /** Turns shadows on/off at runtime. Objects always have castShadow set; the renderer flag decides. */
+  setShadows(on: boolean): void {
+    if (this.renderer.shadowMap.enabled === on) return;
+    this.renderer.shadowMap.enabled = on;
+    this.sun.castShadow = on;
+    // Materials compile differently with shadows; recompile once.
+    this.scene.traverse((o) => {
+      const m = (o as { material?: Material | Material[] }).material;
+      if (Array.isArray(m)) m.forEach((x) => (x.needsUpdate = true));
+      else if (m) m.needsUpdate = true;
+    });
   }
 
   setPixelRatio(ratio: number): void {

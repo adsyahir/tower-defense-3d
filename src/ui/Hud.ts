@@ -9,6 +9,7 @@ export interface HudHandlers {
   onStartWave: () => void;
   onSpeed: () => void;
   onMute: () => void;
+  onPause: () => void;
   onUpgrade: (tower: Tower) => void;
   onSell: (tower: Tower) => void;
   onClosePanel: () => void;
@@ -26,6 +27,7 @@ export class Hud {
   private speedBtn = $<HTMLButtonElement>('#btn-speed');
   private speedLabel = $<HTMLElement>('#speed-label');
   private muteBtn = $<HTMLButtonElement>('#btn-mute');
+  private preview = $<HTMLElement>('#wave-preview');
   private root = $<HTMLElement>('#hud');
   private towerBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.tower-btn'));
 
@@ -53,6 +55,7 @@ export class Hud {
     this.waveBtn.addEventListener('click', handlers.onStartWave);
     this.speedBtn.addEventListener('click', handlers.onSpeed);
     this.muteBtn.addEventListener('click', handlers.onMute);
+    $('#btn-pause').addEventListener('click', handlers.onPause);
     this.pUpgrade.addEventListener('click', () => this.inspected && handlers.onUpgrade(this.inspected));
     $('#tower-panel .tp-sell').addEventListener('click', () => this.inspected && handlers.onSell(this.inspected));
     $('#tower-panel .tp-close').addEventListener('click', handlers.onClosePanel);
@@ -67,6 +70,7 @@ export class Hud {
     ev.on('waveStarted', () => this.refreshWave());
     ev.on('phaseChanged', () => this.refreshWave());
     ev.on('reset', () => this.refreshWave());
+    ev.on('loaded', () => this.refreshWave());
     ev.on('towerUpgraded', (t) => {
       if (t === this.inspected) this.refreshPanel();
     });
@@ -138,6 +142,7 @@ export class Hud {
 
   private refreshWave(): void {
     const s = this.game.state;
+    this.refreshPreview();
     this.wave.textContent = `${s.wave}/${this.game.totalWaves}`;
     const canStart = s.phase === 'build';
     this.waveBtn.disabled = !canStart;
@@ -152,6 +157,20 @@ export class Hud {
         : s.phase === 'victory'
           ? 'Victory!'
           : 'Game over';
+  }
+
+  /** Next wave's enemies as coloured dots with counts; only between waves. */
+  private refreshPreview(): void {
+    const next = this.game.state.phase === 'build' ? this.game.nextWaveSummary() : null;
+    this.preview.replaceChildren();
+    if (!next) return;
+    for (const { type, count } of next) {
+      const foe = document.createElement('span');
+      foe.className = `foe foe-${type}`;
+      foe.title = `${count} ${type}`;
+      foe.append(document.createElement('i'), `×${count}`);
+      this.preview.append(foe);
+    }
   }
 
   /** Brief red pulse, e.g. on the gold pill when something is unaffordable. */

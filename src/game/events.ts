@@ -16,6 +16,8 @@ export interface GameEvents {
   livesChanged: number;
   phaseChanged: Phase;
   reset: void;
+  /** A saved run was restored (after reset + towerPlaced events). */
+  loaded: void;
 }
 
 type Listener<T> = (payload: T) => void;

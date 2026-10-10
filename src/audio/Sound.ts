@@ -7,7 +7,6 @@ export type SoundName = (typeof NAMES)[number];
 /** Minimum seconds between plays of the same sound, so 20 towers firing isn't a wall of noise. */
 const THROTTLE: Partial<Record<SoundName, number>> = { arrow: 0.07, cannon: 0.12, frost: 0.1, hit: 0.06, die: 0.05 };
 const VOLUME: Partial<Record<SoundName, number>> = { arrow: 0.35, cannon: 0.5, frost: 0.35, hit: 0.3, die: 0.45, click: 0.4 };
-const MUTE_KEY = 'td3d.muted';
 
 /**
  * Howler wrapper driven by game events. Howler unlocks audio on the first
@@ -16,15 +15,13 @@ const MUTE_KEY = 'td3d.muted';
 export class Sound {
   private readonly howls = {} as Record<SoundName, Howl>;
   private readonly lastPlayed: Partial<Record<SoundName, number>> = {};
-  private muted: boolean;
+  private muted = false;
 
   constructor(game: Game) {
     const base = `${import.meta.env.BASE_URL}sounds/`;
     for (const name of NAMES) {
       this.howls[name] = new Howl({ src: [`${base}${name}.wav`], volume: VOLUME[name] ?? 0.6, preload: true });
     }
-    this.muted = readMuted();
-    Howler.mute(this.muted);
 
     const ev = game.events;
     ev.on('projectileFired', (p) => this.play(p.kind));
@@ -56,26 +53,13 @@ export class Sound {
     this.howls[name].play();
   }
 
-  get isMuted(): boolean {
-    return this.muted;
+  setMuted(muted: boolean): void {
+    this.muted = muted;
+    Howler.mute(muted);
   }
 
-  toggleMute(): boolean {
-    this.muted = !this.muted;
-    Howler.mute(this.muted);
-    try {
-      localStorage.setItem(MUTE_KEY, this.muted ? '1' : '0');
-    } catch {
-      // storage unavailable (private mode): the setting just won't persist
-    }
-    return this.muted;
-  }
-}
-
-function readMuted(): boolean {
-  try {
-    return localStorage.getItem(MUTE_KEY) === '1';
-  } catch {
-    return false;
+  /** Master volume, 0..1. */
+  setVolume(volume: number): void {
+    Howler.volume(volume);
   }
 }

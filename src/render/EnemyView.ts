@@ -10,7 +10,6 @@ import {
 } from 'three';
 import type { Game } from '../game/Game';
 import type { EnemyType } from '../game/types';
-import { quality } from '../platform/device';
 import { GeoBuilder, palette, PATH_Y, vcMaterial } from './style3d';
 
 interface Motion {
@@ -99,7 +98,7 @@ export class EnemyView {
       const m = new InstancedMesh(geos[type], vcMaterial, n);
       m.count = 0;
       m.frustumCulled = false; // instances move every frame; the base bounds would be wrong
-      m.castShadow = quality.shadows;
+      m.castShadow = true; // only rendered into the shadow map when shadows are on
       for (let i = 0; i < n; i++) m.setColorAt(i, this.white);
       parent.add(m);
       return m;

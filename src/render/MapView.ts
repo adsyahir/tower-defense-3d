@@ -22,7 +22,6 @@ import gsap from 'gsap';
 import type { Grid } from '../game/grid';
 import type { Path } from '../game/path';
 import type { Tile, Vec2 } from '../game/types';
-import { quality } from '../platform/device';
 import { GeoBuilder, GROUND_Y, palette, PATH_Y, rng, vcMaterial } from './style3d';
 
 const TILE_DEPTH = 0.45;
@@ -157,7 +156,7 @@ export class MapView {
     }
     const scenery = new Mesh(b.build(), vcMaterial);
     scenery.receiveShadow = true;
-    scenery.castShadow = quality.shadows;
+    scenery.castShadow = true;
     this.group.add(scenery);
 
     // ---- portal swirl (animated) ----

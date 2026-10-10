@@ -12,7 +12,6 @@ import type { Game } from '../game/Game';
 import { towerStats } from '../game/towers';
 import { balance } from '../config/balance';
 import type { Tower, TowerType, Vec2 } from '../game/types';
-import { quality } from '../platform/device';
 import type { Assets } from './assets';
 import type { Effects } from './Effects';
 import type { TowerModel, TowerModels } from './towerModels';
@@ -195,7 +194,7 @@ export class TowerView {
     const head = new Mesh(model.head, material);
     pivot.add(head);
     root.add(body, pivot);
-    if (quality.shadows) body.castShadow = head.castShadow = true;
+    body.castShadow = head.castShadow = true;
     body.receiveShadow = true;
     root.position.set(tower.pos.x, 0, tower.pos.z);
     this.parent.add(root);

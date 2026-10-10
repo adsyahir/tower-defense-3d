@@ -94,6 +94,26 @@
       <symbol id="i-rate" viewBox="0 0 24 24">
         <path d="M13.5 3L6 13.5h5L10 21l8-11h-5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
       </symbol>
+      <symbol id="i-pause" viewBox="0 0 24 24">
+        <rect x="6" y="5" width="4.2" height="14" rx="1.4" fill="currentColor" />
+        <rect x="13.8" y="5" width="4.2" height="14" rx="1.4" fill="currentColor" />
+      </symbol>
+      <symbol id="i-gear" viewBox="0 0 24 24">
+        <path d="M12 2.8l1.6 2.3 2.7-.7.7 2.7 2.3 1.6-1.2 2.5 1.2 2.5-2.3 1.6-.7 2.7-2.7-.7L12 21.2l-1.6-2.3-2.7.7-.7-2.7-2.3-1.6L5.9 12 4.7 9.5 7 7.9l.7-2.7 2.7.7z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" />
+        <circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.9" />
+      </symbol>
+      <symbol id="i-help" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="2" />
+        <path d="M9.4 9.4a2.7 2.7 0 1 1 3.9 2.4c-.8.4-1.3 1-1.3 1.9v.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        <circle cx="12" cy="17.4" r="1.2" fill="currentColor" />
+      </symbol>
+      <symbol id="i-home" viewBox="0 0 24 24">
+        <path d="M4 11.2L12 4.5l8 6.7M6.5 9.5V19h4v-5h3v5h4V9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="i-grass" viewBox="0 0 24 24">
+        <path d="M3 13.5l9-4.5 9 4.5-9 4.5z" fill="#86c45a" stroke="#4f8a39" stroke-width="1.6" stroke-linejoin="round" />
+        <path d="M12 6.5v4M10.6 9.2L12 10.5l1.4-1.3" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      </symbol>
       <symbol id="i-trophy" viewBox="0 0 48 48">
         <path d="M14 9h20v9a10 10 0 0 1-20 0z" fill="#ffcf3f" stroke="#8a5d08" stroke-width="2.6" stroke-linejoin="round" />
         <path d="M14 12H8.5a6 6 0 0 0 6.5 9M34 12h5.5a6 6 0 0 1-6.5 9" fill="none" stroke="#8a5d08" stroke-width="2.6" stroke-linecap="round" />
@@ -121,6 +141,7 @@
           <div class="stat lives" title="Lives"><svg class="ico"><use href="#i-heart" /></svg><span id="lives">0</span></div>
           <div class="stat wave" title="Wave"><svg class="ico"><use href="#i-flag" /></svg><span class="label">Wave</span><span id="wave">0/0</span></div>
           <span class="spacer"></span>
+          <button id="btn-pause" class="btn icon-btn" aria-label="Pause"><svg class="ico"><use href="#i-pause" /></svg></button>
           <button id="btn-mute" class="btn icon-btn" aria-label="Mute sound"><svg class="ico ico-on"><use href="#i-sound" /></svg><svg class="ico ico-off"><use href="#i-mute" /></svg></button>
           <button id="btn-speed" class="btn speed-btn" aria-label="Game speed"><svg class="ico"><use href="#i-ff" /></svg><span id="speed-label">1×</span></button>
         </div>
@@ -170,11 +191,14 @@
           </div>
           <span class="hint">Tap a grass tile to build</span>
           <span class="spacer"></span>
+          <div class="wave-col">
+          <div id="wave-preview" class="wave-preview" aria-label="Next wave"></div>
           <button id="btn-wave" class="btn primary wave-btn">
             <svg class="ico ico-play"><use href="#i-play" /></svg>
             <svg class="ico ico-busy"><use href="#i-swords" /></svg>
             <span class="wave-label">Start wave</span>
           </button>
+          </div>
         </div>
       </div>
 
@@ -194,6 +218,103 @@
             <div class="end-stat"><svg class="ico"><use href="#i-heart" /></svg><span id="end-lives">0</span></div>
           </div>
           <button class="btn primary big"><svg class="ico"><use href="#i-replay" /></svg><span>Play again</span></button>
+        </div>
+      </div>
+
+      <div id="title" class="overlay screen title-screen" hidden>
+        <div class="title-card">
+          <div class="logo">
+            <svg class="logo-art"><use href="#i-tower" /></svg>
+            <h1>Tower Defense <span>3D</span></h1>
+          </div>
+          <div class="menu">
+            <button id="btn-continue" class="btn primary big menu-main">
+              <svg class="ico"><use href="#i-play" /></svg>
+              <span class="menu-label">Continue <small id="continue-detail"></small></span>
+            </button>
+            <button id="btn-new" class="btn big menu-main"><span class="menu-label">New game</span></button>
+            <div class="menu-row">
+              <button id="btn-help" class="btn"><svg class="ico"><use href="#i-help" /></svg>How to play</button>
+              <button id="btn-settings" class="btn"><svg class="ico"><use href="#i-gear" /></svg>Settings</button>
+            </div>
+          </div>
+          <div class="title-foot">
+            <span id="best-line"></span>
+            <span>Tower models by Kenney · CC0</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="pause" class="overlay screen" hidden>
+        <div class="panel menu-panel">
+          <div class="title">Paused</div>
+          <button data-act="resume" class="btn primary big"><svg class="ico"><use href="#i-play" /></svg>Resume</button>
+          <div class="menu-row">
+            <button data-act="help" class="btn"><svg class="ico"><use href="#i-help" /></svg>How to play</button>
+            <button data-act="settings" class="btn"><svg class="ico"><use href="#i-gear" /></svg>Settings</button>
+          </div>
+          <div class="menu-row">
+            <button data-act="restart" class="btn"><svg class="ico"><use href="#i-replay" /></svg>Restart</button>
+            <button data-act="quit" class="btn"><svg class="ico"><use href="#i-home" /></svg>Main menu</button>
+          </div>
+          <div class="detail small">Your run is saved between waves.</div>
+        </div>
+      </div>
+
+      <div id="settings" class="overlay screen" hidden>
+        <div class="panel menu-panel settings-panel">
+          <div class="title">Settings</div>
+          <div class="setting">
+            <span class="setting-name">Volume</span>
+            <input id="set-volume" type="range" min="0" max="100" step="5" aria-label="Volume" />
+            <output id="set-volume-out">80%</output>
+          </div>
+          <div class="setting">
+            <span class="setting-name">Sound</span>
+            <button id="set-mute" class="btn toggle" aria-pressed="true">On</button>
+          </div>
+          <div class="setting">
+            <span class="setting-name">Graphics</span>
+            <div id="set-graphics" class="seg" role="group" aria-label="Graphics">
+              <button class="btn" data-v="auto">Auto</button>
+              <button class="btn" data-v="low">Low</button>
+              <button class="btn" data-v="high">High</button>
+            </div>
+          </div>
+          <div class="setting">
+            <span class="setting-name">Reduce motion</span>
+            <button id="set-motion" class="btn toggle" aria-pressed="false">Off</button>
+          </div>
+          <div class="menu-row">
+            <button id="set-reset" class="btn danger">Reset progress</button>
+            <button data-act="back" class="btn primary">Done</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="help" class="overlay screen" hidden>
+        <div class="panel menu-panel help-panel">
+          <div class="title">How to play</div>
+          <ol class="steps">
+            <li><svg class="step-ico"><use href="#i-tower" /></svg><span><b>Pick a tower</b> from the cards at the bottom.</span></li>
+            <li><svg class="step-ico"><use href="#i-grass" /></svg><span><b>Tap a grass tile</b> to build. Drag to move the camera, pinch or scroll to zoom.</span></li>
+            <li><svg class="step-ico play"><use href="#i-play" /></svg><span><b>Start the wave</b> and stop the monsters before they reach the castle.</span></li>
+            <li><svg class="step-ico up"><use href="#i-up" /></svg><span><b>Tap a tower</b> to upgrade or sell it. Kills earn gold.</span></li>
+          </ol>
+          <div class="legend">
+            <span><svg class="ico"><use href="#i-ballista" /></svg>Ballista: fast shots</span>
+            <span><svg class="ico"><use href="#i-tower" /></svg>Cannon: splash damage</span>
+            <span><svg class="ico"><use href="#i-frost" /></svg>Frost: slows enemies</span>
+          </div>
+          <div class="detail small keys">Keyboard: <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> build · <kbd>Space</kbd> wave · <kbd>U</kbd> upgrade · <kbd>S</kbd> sell · <kbd>P</kbd> pause</div>
+          <button data-act="back" class="btn primary">Got it</button>
+        </div>
+      </div>
+
+      <div id="no-webgl" class="overlay" hidden>
+        <div class="panel">
+          <div class="title">3D isn't available</div>
+          <div class="detail">This browser can't show 3D graphics. Try the latest Chrome, Safari or Firefox, and make sure hardware acceleration is turned on.</div>
         </div>
       </div>
 

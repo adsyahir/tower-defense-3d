@@ -5,6 +5,7 @@ import { Grid, tileKey } from './grid';
 import { Path } from './path';
 import { Pool } from './pool';
 import { createProjectile, updateProjectiles } from './projectiles';
+import { SAVE_VERSION, type RunSave } from './save';
 import { buildCost, createTower, MAX_LEVEL, updateTowers } from './towers';
 import type { EnemyType, GameState, MapDef, Phase, Tile, Tower, TowerType } from './types';
 import { WaveScheduler } from './waves';
@@ -127,6 +128,56 @@ export class Game {
     this.addGold(refund);
     this.events.emit('towerSold', { tower, refund });
     return refund;
+  }
+
+  /** Enemy counts by type for the next wave, or null if there is none. */
+  nextWaveSummary(): { type: EnemyType; count: number }[] | null {
+    const def = balance.waves[this.state.wave];
+    if (!def) return null;
+    const out: { type: EnemyType; count: number }[] = [];
+    for (const g of def) {
+      const row = out.find((r) => r.type === g.type);
+      if (row) row.count += g.count;
+      else out.push({ type: g.type, count: g.count });
+    }
+    return out;
+  }
+
+  /** The run as plain data, or null mid-wave / after the game ended (only build phase is resumable). */
+  snapshot(): RunSave | null {
+    const s = this.state;
+    if (s.phase !== 'build') return null;
+    return {
+      v: SAVE_VERSION,
+      wave: s.wave,
+      gold: s.gold,
+      lives: s.lives,
+      towers: this.towers.map((t) => ({ type: t.type, level: t.level, col: t.tile.col, row: t.tile.row, spent: t.spent })),
+    };
+  }
+
+  /** Resets, then rebuilds a saved run (no gold charged). Invalid towers are skipped. */
+  restore(save: RunSave): boolean {
+    if (save.wave >= this.totalWaves) return false;
+    this.reset();
+    const s = this.state;
+    s.wave = save.wave;
+    s.gold = save.gold;
+    s.lives = save.lives;
+    for (const t of save.towers) {
+      const tile = { col: t.col, row: t.row };
+      if (!this.canPlace(tile)) continue;
+      const tower = createTower(this.nextId(), t.type, tile, this);
+      tower.level = Math.min(Math.max(1, t.level), MAX_LEVEL);
+      tower.spent = t.spent;
+      this.towers.push(tower);
+      this.towerByTile.set(tileKey(t.col, t.row), tower);
+      this.events.emit('towerPlaced', tower);
+    }
+    this.events.emit('goldChanged', s.gold);
+    this.events.emit('livesChanged', s.lives);
+    this.events.emit('loaded', undefined);
+    return true;
   }
 
   towerAt(tile: Tile): Tower | undefined {

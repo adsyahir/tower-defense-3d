@@ -24,6 +24,11 @@
   box-sizing: border-box;
 }
 
+/* `hidden` must win over component display rules (e.g. .btn is inline-flex). */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;
@@ -621,14 +626,14 @@ body {
   box-shadow: var(--panel-shadow);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  animation: panel-in 0.18s ease-out;
+  animation: tp-in 0.18s ease-out;
 }
 
 .tower-panel[hidden] {
   display: none;
 }
 
-@keyframes panel-in {
+@keyframes tp-in {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -772,6 +777,327 @@ body {
   transition: width 0.15s ease;
 }
 
+
+/* ---- wave preview (next wave's enemies, above the wave button) ---- */
+.wave-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.wave-preview {
+  display: flex;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--panel);
+  box-shadow: var(--panel-shadow);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.wave-preview:empty {
+  display: none;
+}
+
+.wave-preview .foe {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.wave-preview .foe i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.foe-basic i {
+  background: #ef5a4c;
+}
+
+.foe-fast i {
+  background: #f6b93b;
+}
+
+.foe-tank i {
+  background: #7a5bc4;
+  border-radius: 3px !important;
+}
+
+/* ---- screens: title, pause, settings, help ---- */
+.screen {
+  z-index: 5;
+}
+
+body.on-title #hud,
+body.on-title #banner {
+  display: none;
+}
+
+.title-screen {
+  background: radial-gradient(ellipse at 50% 40%, rgba(20, 16, 30, 0.15), rgba(10, 10, 18, 0.65));
+}
+
+.title-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  animation: panel-in 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-art {
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.3));
+}
+
+.logo h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 6.5vw, 3.6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  text-align: left;
+  color: #fff;
+  -webkit-text-stroke: 2px rgba(30, 20, 50, 0.55);
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 rgba(40, 20, 80, 0.55), 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.logo h1 span {
+  color: var(--gold);
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: min(340px, 80vw);
+}
+
+.menu-main {
+  width: 100%;
+}
+
+.menu-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.menu-label small {
+  font-size: 0.8rem;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.menu-label small:empty {
+  display: none;
+}
+
+.menu-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.menu-row > .btn {
+  flex: 1;
+}
+
+.title-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+#best-line:empty {
+  display: none;
+}
+
+#best-line {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.menu-panel {
+  width: min(420px, 92vw);
+  max-height: 100%;
+  overflow-y: auto;
+  align-items: stretch;
+  animation: panel-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+.menu-panel .title {
+  text-align: center;
+}
+
+.panel .detail.small {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* settings */
+.setting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  text-align: left;
+}
+
+.setting-name {
+  flex: 1;
+}
+
+.setting input[type='range'] {
+  flex: 1.4;
+  min-width: 0;
+  height: 44px;
+  accent-color: var(--accent);
+}
+
+.setting output {
+  width: 3.2em;
+  text-align: right;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.toggle {
+  min-width: 72px;
+}
+
+.toggle[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent-light);
+  box-shadow: 0 4px 0 var(--accent-dark);
+}
+
+.seg {
+  display: flex;
+  gap: 4px;
+}
+
+.seg .btn {
+  padding: 6px 10px;
+  font-size: 0.95rem;
+}
+
+.seg .btn.on {
+  background: var(--active);
+  border-color: #79a9e8;
+  box-shadow: 0 4px 0 var(--active-dark);
+}
+
+.btn.danger {
+  color: #ffb0a8;
+}
+
+.btn.danger.confirm {
+  background: #b8382d;
+  border-color: #ff8a7a;
+  color: #fff;
+}
+
+/* help */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step-ico {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  padding: 3px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.step-ico.play,
+.step-ico.up {
+  padding: 8px;
+  color: var(--accent-light);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  margin: 0 1px;
+  padding: 0 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* Keyboard hints only make sense with a keyboard. */
+@media (pointer: coarse) {
+  .keys {
+    display: none;
+  }
+}
+
+#no-webgl {
+  z-index: 11;
+  background: var(--bg);
+}
+
+/* Reduce motion (setting or OS preference): no looping or bouncy UI animation. */
+body.reduced-motion *,
+body.reduced-motion *::before,
+body.reduced-motion *::after {
+  animation-duration: 0.001s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001s !important;
+}
+
 /* Small landscape phones: tighten things up but keep 44px targets. */
 @media (max-height: 420px) {
   :root {
@@ -812,6 +1138,34 @@ body {
   }
   .hint {
     display: none;
+  }
+  .title-card {
+    gap: 10px;
+  }
+  .logo-art {
+    width: 52px;
+    height: 52px;
+  }
+  .menu-panel {
+    gap: 6px;
+    padding: 14px 20px 16px;
+  }
+  .menu-panel .title {
+    font-size: 1.5rem;
+  }
+  .steps {
+    gap: 6px;
+    font-size: 0.9rem;
+  }
+  .step-ico {
+    width: 30px;
+    height: 30px;
+  }
+  .setting {
+    min-height: 44px;
+  }
+  .wave-preview {
+    font-size: 0.75rem;
   }
   /* Compact build cards: icon over cost, no name. */
   .tower-btn {
