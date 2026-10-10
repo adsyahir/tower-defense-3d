@@ -1,7 +1,7 @@
 import type { TowerStats } from '../config/balance';
 import type { Game } from './Game';
 import { damageEnemy, slowEnemy } from './enemies';
-import type { Enemy, Projectile, TowerType, Vec2 } from './types';
+import type { Enemy, Projectile, Tower, TowerType, Vec2 } from './types';
 
 const HIT_RADIUS = 0.2;
 
@@ -16,14 +16,24 @@ export function createProjectile(): Projectile {
     speed: 0,
     damage: 0,
     kind: 'arrow',
+    source: null,
     splash: 0,
     slow: 1,
     slowDuration: 0,
   };
 }
 
-export function fireProjectile(game: Game, from: Vec2, target: Enemy, stats: TowerStats, kind: TowerType): Projectile {
+/** Returns null (no shot) if the projectile pool is full. */
+export function fireProjectile(
+  game: Game,
+  from: Vec2,
+  target: Enemy,
+  stats: TowerStats,
+  kind: TowerType,
+  source: Tower | null = null,
+): Projectile | null {
   const p = game.projectiles.acquire();
+  if (!p) return null;
   p.id = game.nextId();
   p.pos.x = from.x;
   p.pos.z = from.z;
@@ -34,6 +44,7 @@ export function fireProjectile(game: Game, from: Vec2, target: Enemy, stats: Tow
   p.speed = stats.projectileSpeed;
   p.damage = stats.damage;
   p.kind = kind;
+  p.source = source;
   p.splash = stats.splash ?? 0;
   p.slow = stats.slow ?? 1;
   p.slowDuration = stats.slowDuration ?? 0;
@@ -85,6 +96,7 @@ export function updateProjectiles(game: Game, dt: number): void {
         hitEnemy(game, p, t);
       }
       p.target = null;
+      p.source = null;
       continue;
     }
     p.pos.x += (dx / dist) * step;

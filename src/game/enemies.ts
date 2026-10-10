@@ -20,9 +20,11 @@ export function createEnemy(): Enemy {
   };
 }
 
-export function spawnEnemy(game: Game, type: EnemyType): Enemy {
+/** Returns null if the enemy pool is full (waves are designed to stay well below it). */
+export function spawnEnemy(game: Game, type: EnemyType): Enemy | null {
   const stats = balance.enemies[type];
   const e = game.enemies.acquire();
+  if (!e) return null;
   e.id = game.nextId();
   e.type = type;
   e.hp = e.maxHp = stats.hp;
@@ -76,9 +78,16 @@ export function damageEnemy(game: Game, e: Enemy, amount: number): void {
   }
 }
 
-/** Applies a slow; a stronger or longer slow wins over a weaker one. */
+/**
+ * Applies a slow. Only one slow is active at a time: a stronger one replaces the current one,
+ * an equally strong one refreshes its duration, and a weaker one is ignored while the current lasts.
+ */
 export function slowEnemy(e: Enemy, factor: number, duration: number): void {
   if (!e.active) return;
-  e.slowFactor = e.slowTime > 0 ? Math.min(e.slowFactor, factor) : factor;
-  e.slowTime = Math.max(e.slowTime, duration);
+  if (e.slowTime <= 0 || factor < e.slowFactor) {
+    e.slowFactor = factor;
+    e.slowTime = duration;
+  } else if (factor === e.slowFactor) {
+    e.slowTime = Math.max(e.slowTime, duration);
+  }
 }

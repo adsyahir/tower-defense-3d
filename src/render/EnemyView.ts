@@ -90,7 +90,7 @@ export class EnemyView {
   private readonly icy = new Color(0.55, 0.85, 1.45);
 
   constructor(parent: Object3D, private game: Game) {
-    const n = game.enemies.items.length;
+    const n = game.enemies.capacity; // the pool never grows past this
     this.yaw = new Float32Array(n);
     this.age = new Float32Array(n);
     this.flash = new Float32Array(n);

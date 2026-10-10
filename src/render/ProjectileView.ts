@@ -1,6 +1,6 @@
 import { AdditiveBlending, Color, IcosahedronGeometry, InstancedMesh, MeshBasicMaterial, Object3D } from 'three';
 import type { Game } from '../game/Game';
-import type { TowerType } from '../game/types';
+import type { Tower, TowerType } from '../game/types';
 import { PATH_Y } from './style3d';
 
 /** Height projectiles end at (enemy body). */
@@ -33,9 +33,10 @@ export class ProjectileView {
   private readonly startY: Float32Array;
   private readonly startDist: Float32Array;
 
-  constructor(parent: Object3D, private game: Game, launchY: (x: number, z: number) => number) {
+  constructor(parent: Object3D, private game: Game, launchY: (tower: Tower | null) => number) {
     const items = game.projectiles.items;
-    const n = items.length;
+    // The pool never grows past its capacity, so buffers sized to it always fit.
+    const n = game.projectiles.capacity;
     this.startY = new Float32Array(n);
     this.startDist = new Float32Array(n);
     this.core = new InstancedMesh(new IcosahedronGeometry(0.075, 0), new MeshBasicMaterial(), n);
@@ -52,7 +53,7 @@ export class ProjectileView {
     }
     game.events.on('projectileFired', (p) => {
       const i = items.indexOf(p);
-      this.startY[i] = launchY(p.pos.x, p.pos.z);
+      this.startY[i] = launchY(p.source);
       this.startDist[i] = Math.max(0.01, Math.hypot(p.lastTargetPos.x - p.pos.x, p.lastTargetPos.z - p.pos.z));
     });
   }

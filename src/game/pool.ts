@@ -1,13 +1,18 @@
 /**
- * Fixed-identity object pool. `items` only grows; inactive items are reused.
- * Views can map items[i] -> mesh[i] because an item never changes index.
+ * Fixed-identity object pool. `items` only grows (up to `capacity`); inactive items are reused.
+ * Views can map items[i] -> instance i because an item never changes index, and size
+ * their buffers to `capacity`.
  */
 export class Pool<T extends { active: boolean }> {
   readonly items: T[] = [];
   private free: T[] = [];
   private active = 0;
 
-  constructor(private create: () => T, initialSize = 0) {
+  constructor(
+    private create: () => T,
+    initialSize = 0,
+    readonly capacity = Infinity,
+  ) {
     for (let i = 0; i < initialSize; i++) {
       const item = create();
       item.active = false;
@@ -16,9 +21,11 @@ export class Pool<T extends { active: boolean }> {
     }
   }
 
-  acquire(): T {
+  /** Returns null when the pool is at capacity. */
+  acquire(): T | null {
     let item = this.free.pop();
     if (!item) {
+      if (this.items.length >= this.capacity) return null;
       item = this.create();
       this.items.push(item);
     }

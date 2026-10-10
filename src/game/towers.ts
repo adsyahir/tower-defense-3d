@@ -59,8 +59,7 @@ export function updateTowers(game: Game, dt: number): void {
     tower.targetId = target ? target.id : 0;
     if (!target) continue;
     tower.aim = Math.atan2(target.pos.x - tower.pos.x, target.pos.z - tower.pos.z);
-    if (tower.cooldown === 0) {
-      fireProjectile(game, tower.pos, target, stats, tower.type);
+    if (tower.cooldown === 0 && fireProjectile(game, tower.pos, target, stats, tower.type, tower)) {
       tower.cooldown = 1 / stats.fireRate;
     }
   }

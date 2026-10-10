@@ -29,7 +29,19 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 // ---- setup ----
 const loading = document.querySelector<HTMLElement>('#loading')!;
 const loadFill = loading.querySelector<HTMLElement>('.load-fill')!;
-const assets = await loadAssets((f) => (loadFill.style.width = `${Math.round(f * 100)}%`));
+const assets = await loadAssets((f) => (loadFill.style.width = `${Math.round(f * 100)}%`)).catch((err: unknown) => {
+  // A missing model would otherwise leave the loading bar stuck forever.
+  console.error(err);
+  loading.querySelector('.title')!.textContent = "Couldn't load the game";
+  loading.querySelector('.load-track')!.replaceWith(
+    Object.assign(document.createElement('button'), {
+      className: 'btn primary',
+      textContent: 'Try again',
+      onclick: () => location.reload(),
+    }),
+  );
+  throw err;
+});
 loading.classList.add('done');
 setTimeout(() => loading.remove(), 400);
 
@@ -45,7 +57,7 @@ const effects = new Effects(scene, game, mapView.portalPos, mapView.castlePos);
 const enemyView = new EnemyView(scene, game);
 const healthBars = new HealthBars(scene, game.enemies.items, rig.camera);
 const towerView = new TowerView(scene, game, effects, new TowerModels(assets), assets);
-const projectileView = new ProjectileView(scene, game, (x, z) => towerView.launchY(x, z));
+const projectileView = new ProjectileView(scene, game, (tower) => towerView.launchY(tower));
 const sound = new Sound(game);
 const picker = new Picker(r3d.canvas, rig.camera, game.grid);
 

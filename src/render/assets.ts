@@ -15,8 +15,6 @@ import {
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
-// Kenney GLBs all reference the same external Textures/colormap.png; cache it instead of fetching per model.
-Cache.enabled = true;
 
 /** Kenney Tower Defense Kit pieces we use (CC0, see public/models/LICENSE-kenney.txt). */
 export const MODEL_NAMES = [
@@ -110,6 +108,18 @@ function paletteMaterial(map: Texture): MeshLambertMaterial {
 
 /** Loads all tower models and both palette textures. Calls onProgress with 0..1. */
 export async function loadAssets(onProgress: (fraction: number) => void): Promise<Assets> {
+  // Kenney GLBs all reference the same external Textures/colormap.png; cache it while loading
+  // instead of fetching it per model, then release the cached files.
+  Cache.enabled = true;
+  try {
+    return await load(onProgress);
+  } finally {
+    Cache.clear();
+    Cache.enabled = false;
+  }
+}
+
+async function load(onProgress: (fraction: number) => void): Promise<Assets> {
   const manager = new LoadingManager();
   manager.onProgress = (_url, loaded, total) => onProgress(total ? loaded / total : 0);
   const gltf = new GLTFLoader(manager);

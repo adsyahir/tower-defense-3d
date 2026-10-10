@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { balance, type TowerStats } from '../config/balance';
 import { map01 } from '../config/map01';
-import { spawnEnemy } from './enemies';
+import { slowEnemy, spawnEnemy } from './enemies';
 import { Game } from './Game';
 import { fireProjectile } from './projectiles';
 import { buildCost, towerStats } from './towers';
@@ -99,9 +99,9 @@ describe('sell refund rounding', () => {
 
 describe('cannon splash', () => {
   it('damages every enemy within the splash radius of the impact', () => {
-    const target = spawnEnemy(game, 'tank');
-    const near = spawnEnemy(game, 'tank');
-    const far = spawnEnemy(game, 'tank');
+    const target = spawnEnemy(game, 'tank')!;
+    const near = spawnEnemy(game, 'tank')!;
+    const far = spawnEnemy(game, 'tank')!;
     // Place them by path distance (update() recomputes pos from it). First segment is 4 long.
     target.distance = 2;
     near.distance = 2.5; // 0.5 from target
@@ -121,7 +121,7 @@ describe('cannon splash', () => {
 
 describe('frost slow', () => {
   it('slows the target for the slow duration, then it recovers', () => {
-    const e = spawnEnemy(game, 'tank');
+    const e = spawnEnemy(game, 'tank')!;
     e.speed = 1;
     fireProjectile(game, { x: e.pos.x, z: e.pos.z }, e, shot({ damage: 1, slow: 0.5, slowDuration: 1 }), 'frost');
     game.update(1 / 60); // hits immediately (fired from its own position)
@@ -138,9 +138,59 @@ describe('frost slow', () => {
 
   it('frost towers actually apply slow when they fire', () => {
     game.placeTower('frost', { col: 1, row: 1 });
-    const e = spawnEnemy(game, 'tank'); // sits on the path start, next to the tower
+    const e = spawnEnemy(game, 'tank')!; // sits on the path start, next to the tower
     e.speed = 0;
     run(game, 1);
     expect(e.slowTime).toBeGreaterThan(0);
+  });
+});
+
+describe('review fixes', () => {
+  it('a weak long slow does not stretch a strong short one', () => {
+    const e = spawnEnemy(game, 'tank')!;
+    slowEnemy(e, 0.35, 0.1);
+    slowEnemy(e, 0.55, 1.5);
+    // Strong slow still active: the weaker one must not extend it at 0.35.
+    expect(e.slowFactor * e.slowTime).not.toBeCloseTo(0.35 * 1.5, 5);
+    expect(e.slowFactor === 0.35 ? e.slowTime : 0).toBeLessThanOrEqual(0.1 + 1e-9);
+  });
+
+  it('a stronger slow replaces a weaker one; an equal one refreshes the duration', () => {
+    const e = spawnEnemy(game, 'tank')!;
+    slowEnemy(e, 0.55, 1.5);
+    slowEnemy(e, 0.35, 0.5);
+    expect(e.slowFactor).toBe(0.35);
+    expect(e.slowTime).toBe(0.5);
+    slowEnemy(e, 0.35, 2);
+    expect(e.slowTime).toBe(2);
+  });
+
+  it('cannot upgrade a sold tower or after the game ended', () => {
+    game.placeTower('arrow', { col: 1, row: 1 });
+    const t = game.towers[0];
+    game.sellTower(t);
+    const gold = game.state.gold;
+    expect(game.upgradeTower(t)).toBe('invalid');
+    expect(game.state.gold).toBe(gold);
+    game.placeTower('arrow', { col: 2, row: 1 });
+    game.loseLives(999);
+    expect(game.upgradeTower(game.towers[0])).toBe('invalid');
+  });
+
+  it('skips shots instead of growing past the projectile cap', () => {
+    const e = spawnEnemy(game, 'tank')!;
+    e.speed = 0;
+    for (let i = 0; i < 250; i++) fireProjectile(game, { x: 50, z: 50 }, e, shot({}), 'arrow');
+    expect(game.projectiles.items.length).toBe(game.projectiles.capacity);
+    expect(game.projectiles.activeCount).toBe(game.projectiles.capacity);
+  });
+
+  it('records which tower fired a projectile', () => {
+    game.placeTower('arrow', { col: 1, row: 1 });
+    const fired: unknown[] = [];
+    game.events.on('projectileFired', (p) => fired.push(p.source));
+    spawnEnemy(game, 'tank')!.speed = 0;
+    run(game, 0.2);
+    expect(fired[0]).toBe(game.towers[0]);
   });
 });

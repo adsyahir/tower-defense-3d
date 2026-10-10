@@ -1,14 +1,7 @@
 import { balance } from '../config/balance';
 import type { Game } from '../game/Game';
 
-const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
-
-/** Restarts a CSS animation by toggling its class. */
-function replay(el: HTMLElement, cls: string): void {
-  el.classList.remove(cls);
-  void el.offsetWidth;
-  el.classList.add(cls);
-}
+import { $, replay } from './dom';
 
 /**
  * Event-driven overlays: game over / victory panel, wave banner and the red

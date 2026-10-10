@@ -1,7 +1,8 @@
 import { balance } from '../config/balance';
 import type { Game } from '../game/Game';
-import { buildCost, MAX_LEVEL, towerStats } from '../game/towers';
+import { buildCost, towerStats } from '../game/towers';
 import type { Tower, TowerType } from '../game/types';
+import { $, replay } from './dom';
 
 export interface HudHandlers {
   onTowerButton: (type: TowerType) => void;
@@ -12,8 +13,6 @@ export interface HudHandlers {
   onSell: (tower: Tower) => void;
   onClosePanel: () => void;
 }
-
-const $ = <T extends HTMLElement>(sel: string) => document.querySelector(sel) as T;
 
 const icons: Record<TowerType, string> = { arrow: '#i-ballista', cannon: '#i-tower', frost: '#i-frost' };
 
@@ -128,7 +127,7 @@ export class Hud {
         ? `Slow ${Math.round((1 - stats.slow) * 100)}%`
         : '';
     const cost = this.game.upgradeCost(t);
-    const maxed = cost === null || t.level >= MAX_LEVEL;
+    const maxed = cost === null;
     this.pUpgrade.classList.toggle('maxed', maxed);
     this.pUpgrade.classList.toggle('unaffordable', !maxed && this.game.state.gold < cost);
     this.pUpgrade.disabled = maxed;
@@ -157,8 +156,6 @@ export class Hud {
 
   /** Brief red pulse, e.g. on the gold pill when something is unaffordable. */
   pulse(el: HTMLElement = this.gold.parentElement!): void {
-    el.classList.remove('pulse');
-    void el.offsetWidth; // restart the CSS animation
-    el.classList.add('pulse');
+    replay(el, 'pulse');
   }
 }

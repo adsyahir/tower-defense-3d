@@ -69,6 +69,8 @@ export interface Projectile {
   damage: number;
   /** Tower type that fired it (render uses this for the look). */
   kind: TowerType;
+  /** Tower that fired it, if any. */
+  source: Tower | null;
   /** Area damage radius on impact; 0 = single target. */
   splash: number;
   /** Speed multiplier applied on hit; 1 = no slow. */

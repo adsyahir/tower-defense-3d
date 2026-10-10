@@ -26,12 +26,14 @@ interface TowerObj {
   head: Mesh;
   yaw: number;
   kick: number;
-  lastCooldown: number;
+  /** Set by the projectileFired event; consumed in sync(). */
+  fired: boolean;
 }
 
 /** Kenney tower stacks (2 draw calls each), weapon aim + recoil, upgrade/sell animation, range ring, placement ghost. */
 export class TowerView {
   private readonly objs: TowerObj[] = [];
+  private readonly byTower = new Map<Tower, TowerObj>();
   private readonly ring = new Group();
   private readonly ringDisc: Mesh<CircleGeometry, MeshBasicMaterial>;
   private readonly ringEdge: Mesh<RingGeometry, MeshBasicMaterial>;
@@ -40,6 +42,7 @@ export class TowerView {
   private readonly ghostHead: Mesh;
   private readonly ghostMat = new MeshLambertMaterial({ color: '#9dff8a', transparent: true, opacity: 0.55, depthWrite: false });
   private ghostType: TowerType | null = null;
+  private ringKey = '';
   private selected: Tower | null = null;
   private ringTime = 0;
 
@@ -72,6 +75,10 @@ export class TowerView {
     parent.add(this.ghost);
 
     game.events.on('towerPlaced', (t) => this.add(t));
+    game.events.on('projectileFired', (p) => {
+      const o = p.source && this.byTower.get(p.source);
+      if (o) o.fired = true;
+    });
     game.events.on('towerUpgraded', (t) => this.upgrade(t));
     game.events.on('towerSold', ({ tower, refund }) => this.remove(tower, refund));
     game.events.on('reset', () => this.clear());
@@ -105,20 +112,23 @@ export class TowerView {
       this.ghostHead.position.y = model.headY;
       this.ghostType = type;
     }
-    const moved = !this.ghost.visible || this.ghost.position.x !== pos.x || this.ghost.position.z !== pos.z;
+    const color = ok ? '#9dff8a' : '#ff6a5a';
+    // Re-pop the ring only when what it shows changes (tile, type or validity).
+    const key = `${pos.x},${pos.z},${type},${color}`;
+    const changed = !this.ghost.visible || key !== this.ringKey;
     this.ghost.position.set(pos.x, 0, pos.z);
     this.ghost.visible = true;
-    const color = ok ? '#9dff8a' : '#ff6a5a';
     this.ghostMat.color.set(color);
-    if (moved) this.showRing(pos, balance.towers[type].levels[0].range, color);
+    if (changed) {
+      this.ringKey = key;
+      this.showRing(pos, balance.towers[type].levels[0].range, color);
+    }
   }
 
   /** Height a projectile leaves this tower from. */
-  launchY(x: number, z: number): number {
-    for (const o of this.objs) {
-      if (o.tower.pos.x === x && o.tower.pos.z === z) return o.model.headY + o.model.muzzleY;
-    }
-    return 0.6;
+  launchY(tower: Tower | null): number {
+    const o = tower && this.byTower.get(tower);
+    return o ? o.model.headY + o.model.muzzleY : 0.6;
   }
 
   /** dt: simulated seconds (0 while paused); realDt drives UI-ish animation. */
@@ -127,9 +137,8 @@ export class TowerView {
       const o = this.objs[i];
       const tower = o.tower;
       const m = o.model;
-      // Fire detection: the cooldown only jumps up when a shot is fired.
-      const fired = tower.cooldown > o.lastCooldown + 1e-4;
-      o.lastCooldown = tower.cooldown;
+      const fired = o.fired;
+      o.fired = false;
       if (m.aims) {
         if (fired) {
           o.kick = 1;
@@ -190,14 +199,16 @@ export class TowerView {
     body.receiveShadow = true;
     root.position.set(tower.pos.x, 0, tower.pos.z);
     this.parent.add(root);
-    this.objs.push({ tower, model, root, body, pivot, head, yaw: tower.aim, kick: 0, lastCooldown: tower.cooldown });
+    const obj: TowerObj = { tower, model, root, body, pivot, head, yaw: tower.aim, kick: 0, fired: false };
+    this.objs.push(obj);
+    this.byTower.set(tower, obj);
     // Drop in with a squash.
     gsap.fromTo(root.position, { y: 1.2 }, { y: 0, duration: 0.28, ease: 'power2.in', onComplete: () => this.effects.dust(tower.pos.x, tower.pos.z) });
     gsap.fromTo(root.scale, { x: 0.7, y: 1.3, z: 0.7 }, { x: 1, y: 1, z: 1, duration: 0.5, delay: 0.26, ease: 'elastic.out(1.2, 0.4)' });
   }
 
   private upgrade(tower: Tower): void {
-    const o = this.objs.find((x) => x.tower === tower);
+    const o = this.byTower.get(tower);
     if (!o) return;
     o.model = this.models.get(tower.type, tower.level);
     o.body.geometry = o.model.body;
@@ -213,6 +224,7 @@ export class TowerView {
     if (i < 0) return;
     const o = this.objs[i];
     this.objs.splice(i, 1);
+    this.byTower.delete(tower);
     if (this.selected === tower) this.select(null);
     this.effects.dust(tower.pos.x, tower.pos.z);
     this.effects.popup(`+${refund}`, tower.pos.x, o.model.headY + 0.3, tower.pos.z);
@@ -237,6 +249,7 @@ export class TowerView {
       this.parent.remove(root);
     }
     this.objs.length = 0;
+    this.byTower.clear();
     this.select(null);
     this.ghost.visible = false;
   }

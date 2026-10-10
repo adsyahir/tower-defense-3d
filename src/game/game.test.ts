@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe('enemies', () => {
   it('walks the path and costs lives when it reaches the end', () => {
-    const e = spawnEnemy(game, 'basic');
+    const e = spawnEnemy(game, 'basic')!;
     e.speed = 1;
     run(game, game.path.totalLength + 0.1);
     expect(e.active).toBe(false);
@@ -29,7 +29,7 @@ describe('enemies', () => {
   });
 
   it('dies once and pays its reward once', () => {
-    const e = spawnEnemy(game, 'basic');
+    const e = spawnEnemy(game, 'basic')!;
     let kills = 0;
     game.events.on('enemyKilled', () => kills++);
     damageEnemy(game, e, 1000);
@@ -58,8 +58,8 @@ describe('towers', () => {
   it('targets the nearest enemy in range and ignores ones out of range', () => {
     game.placeTower('arrow', { col: 2, row: 1 });
     const tower = game.towers[0];
-    const near = spawnEnemy(game, 'basic');
-    const far = spawnEnemy(game, 'basic');
+    const near = spawnEnemy(game, 'basic')!;
+    const far = spawnEnemy(game, 'basic')!;
     near.pos.x = tower.pos.x + 1;
     near.pos.z = tower.pos.z;
     far.pos.x = tower.pos.x + 2;
@@ -74,7 +74,7 @@ describe('towers', () => {
 
 describe('projectiles', () => {
   it('reaches a stationary target and deals damage', () => {
-    const e = spawnEnemy(game, 'tank');
+    const e = spawnEnemy(game, 'tank')!;
     e.speed = 0;
     fireProjectile(game, { x: e.pos.x + 3, z: e.pos.z }, e, shot, 'arrow');
     run(game, 1);
@@ -83,12 +83,12 @@ describe('projectiles', () => {
   });
 
   it('fizzles without crashing when the target dies mid-flight', () => {
-    const e = spawnEnemy(game, 'basic');
+    const e = spawnEnemy(game, 'basic')!;
     e.speed = 0;
-    const p = fireProjectile(game, { x: e.pos.x + 3, z: e.pos.z }, e, shot, 'arrow');
+    const p = fireProjectile(game, { x: e.pos.x + 3, z: e.pos.z }, e, shot, 'arrow')!;
     damageEnemy(game, e, 1000);
     const gold = game.state.gold;
-    const reused = spawnEnemy(game, 'basic'); // likely reuses the same pooled object
+    const reused = spawnEnemy(game, 'basic')!; // likely reuses the same pooled object
     reused.speed = 0;
     run(game, 1);
     expect(p.active).toBe(false);

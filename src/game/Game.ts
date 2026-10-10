@@ -10,15 +10,16 @@ import type { EnemyType, GameState, MapDef, Phase, Tile, Tower, TowerType } from
 import { WaveScheduler } from './waves';
 
 export type PlaceResult = 'ok' | 'blocked' | 'gold';
-export type UpgradeResult = 'ok' | 'max' | 'gold';
+/** 'invalid': the tower is no longer placed, or the game is over. */
+export type UpgradeResult = 'ok' | 'max' | 'gold' | 'invalid';
 
 /** Owns all game state. Pure logic: no three.js, no DOM. */
 export class Game {
   readonly events = new Emitter<GameEvents>();
   readonly grid: Grid;
   readonly path: Path;
-  readonly enemies = new Pool(createEnemy, 100);
-  readonly projectiles = new Pool(createProjectile, 200);
+  readonly enemies = new Pool(createEnemy, 100, 100);
+  readonly projectiles = new Pool(createProjectile, 200, 200);
   readonly towers: Tower[] = [];
   readonly state: GameState = { phase: 'build', gold: 0, lives: 0, wave: 0, time: 0 };
 
@@ -100,9 +101,10 @@ export class Game {
   }
 
   upgradeTower(tower: Tower): UpgradeResult {
+    if (this.isOver() || !this.towers.includes(tower)) return 'invalid';
     const cost = this.upgradeCost(tower);
     if (cost === null) return 'max';
-    if (this.state.gold < cost || this.isOver()) return 'gold';
+    if (this.state.gold < cost) return 'gold';
     tower.level++;
     tower.spent += cost;
     this.addGold(-cost);

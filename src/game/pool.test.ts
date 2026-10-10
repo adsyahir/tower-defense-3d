@@ -4,11 +4,11 @@ import { Pool } from './pool';
 describe('Pool', () => {
   it('reuses released items instead of growing', () => {
     const pool = new Pool(() => ({ active: false, n: 0 }), 2);
-    const a = pool.acquire();
-    const b = pool.acquire();
+    const a = pool.acquire()!;
+    const b = pool.acquire()!;
     expect(pool.activeCount).toBe(2);
     pool.release(a);
-    const c = pool.acquire();
+    const c = pool.acquire()!;
     expect(c).toBe(a);
     expect(pool.items.length).toBe(2);
     expect(b.active).toBe(true);
@@ -16,7 +16,7 @@ describe('Pool', () => {
 
   it('grows when empty and ignores double release', () => {
     const pool = new Pool(() => ({ active: false }), 1);
-    const a = pool.acquire();
+    const a = pool.acquire()!;
     pool.acquire();
     expect(pool.items.length).toBe(2);
     pool.release(a);
@@ -24,5 +24,15 @@ describe('Pool', () => {
     expect(pool.activeCount).toBe(1);
     pool.releaseAll();
     expect(pool.activeCount).toBe(0);
+  });
+});
+
+describe('Pool capacity', () => {
+  it('returns null when full instead of growing', () => {
+    const pool = new Pool(() => ({ active: false }), 2, 2);
+    expect(pool.acquire()).not.toBeNull();
+    expect(pool.acquire()).not.toBeNull();
+    expect(pool.acquire()).toBeNull();
+    expect(pool.items.length).toBe(2);
   });
 });
