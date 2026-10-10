@@ -12,8 +12,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
       manifest: {
-        name: 'Tower Defense 3D',
-        short_name: 'TD 3D',
+        name: 'Tower Defense',
+        short_name: 'Tower Defense',
         description: 'A 3D tower defense game that runs in your browser.',
         display: 'fullscreen',
         orientation: 'landscape',
