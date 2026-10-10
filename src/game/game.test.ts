@@ -4,13 +4,15 @@ import { map01 } from '../config/map01';
 import { damageEnemy, spawnEnemy } from './enemies';
 import { Game } from './Game';
 import { fireProjectile } from './projectiles';
-import { findTarget } from './towers';
+import { buildCost, findTarget } from './towers';
 import { WaveScheduler } from './waves';
 
 /** Runs the game in fixed steps. */
 function run(game: Game, seconds: number, step = 1 / 60) {
   for (let t = 0; t < seconds; t += step) game.update(step);
 }
+
+const shot = { cost: 0, range: 3, fireRate: 1, damage: 10, projectileSpeed: 8 };
 
 let game: Game;
 beforeEach(() => {
@@ -44,17 +46,17 @@ describe('enemies', () => {
 
 describe('towers', () => {
   it('cannot be placed on the path, on a tower, or without gold', () => {
-    expect(game.placeTower('basic', { col: 0, row: 2 })).toBe('blocked');
-    expect(game.placeTower('basic', { col: 99, row: 0 })).toBe('blocked');
-    expect(game.placeTower('basic', { col: 1, row: 1 })).toBe('ok');
-    expect(game.state.gold).toBe(balance.startGold - balance.towers.basic.cost);
-    expect(game.placeTower('basic', { col: 1, row: 1 })).toBe('blocked');
+    expect(game.placeTower('arrow', { col: 0, row: 2 })).toBe('blocked');
+    expect(game.placeTower('arrow', { col: 99, row: 0 })).toBe('blocked');
+    expect(game.placeTower('arrow', { col: 1, row: 1 })).toBe('ok');
+    expect(game.state.gold).toBe(balance.startGold - buildCost('arrow'));
+    expect(game.placeTower('arrow', { col: 1, row: 1 })).toBe('blocked');
     game.state.gold = 0;
-    expect(game.placeTower('basic', { col: 2, row: 1 })).toBe('gold');
+    expect(game.placeTower('arrow', { col: 2, row: 1 })).toBe('gold');
   });
 
   it('targets the nearest enemy in range and ignores ones out of range', () => {
-    game.placeTower('basic', { col: 2, row: 1 });
+    game.placeTower('arrow', { col: 2, row: 1 });
     const tower = game.towers[0];
     const near = spawnEnemy(game, 'basic');
     const far = spawnEnemy(game, 'basic');
@@ -74,7 +76,7 @@ describe('projectiles', () => {
   it('reaches a stationary target and deals damage', () => {
     const e = spawnEnemy(game, 'tank');
     e.speed = 0;
-    fireProjectile(game, { x: e.pos.x + 3, z: e.pos.z }, e, 8, 10);
+    fireProjectile(game, { x: e.pos.x + 3, z: e.pos.z }, e, shot, 'arrow');
     run(game, 1);
     expect(e.hp).toBe(balance.enemies.tank.hp - 10);
     expect(game.projectiles.activeCount).toBe(0);
@@ -83,7 +85,7 @@ describe('projectiles', () => {
   it('fizzles without crashing when the target dies mid-flight', () => {
     const e = spawnEnemy(game, 'basic');
     e.speed = 0;
-    const p = fireProjectile(game, { x: e.pos.x + 3, z: e.pos.z }, e, 8, 10);
+    const p = fireProjectile(game, { x: e.pos.x + 3, z: e.pos.z }, e, shot, 'arrow');
     damageEnemy(game, e, 1000);
     const gold = game.state.gold;
     const reused = spawnEnemy(game, 'basic'); // likely reuses the same pooled object
@@ -132,7 +134,7 @@ describe('waves', () => {
   });
 
   it('reset restores everything', () => {
-    game.placeTower('basic', { col: 1, row: 1 });
+    game.placeTower('arrow', { col: 1, row: 1 });
     game.startWave();
     run(game, 5);
     game.reset();
@@ -140,6 +142,6 @@ describe('waves', () => {
     expect(game.towers.length).toBe(0);
     expect(game.enemies.activeCount).toBe(0);
     expect(game.projectiles.activeCount).toBe(0);
-    expect(game.placeTower('basic', { col: 1, row: 1 })).toBe('ok');
+    expect(game.placeTower('arrow', { col: 1, row: 1 })).toBe('ok');
   });
 });

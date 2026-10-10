@@ -5,11 +5,12 @@ import { Grid, tileKey } from './grid';
 import { Path } from './path';
 import { Pool } from './pool';
 import { createProjectile, updateProjectiles } from './projectiles';
-import { createTower, updateTowers } from './towers';
+import { buildCost, createTower, MAX_LEVEL, updateTowers } from './towers';
 import type { EnemyType, GameState, MapDef, Phase, Tile, Tower, TowerType } from './types';
 import { WaveScheduler } from './waves';
 
 export type PlaceResult = 'ok' | 'blocked' | 'gold';
+export type UpgradeResult = 'ok' | 'max' | 'gold';
 
 /** Owns all game state. Pure logic: no three.js, no DOM. */
 export class Game {
@@ -78,7 +79,7 @@ export class Game {
     const result: PlaceResult =
       s.phase === 'gameover' || s.phase === 'victory' || !this.canPlace(tile)
         ? 'blocked'
-        : s.gold < balance.towers[type].cost
+        : s.gold < buildCost(type)
           ? 'gold'
           : 'ok';
     if (result !== 'ok') {
@@ -88,9 +89,42 @@ export class Game {
     const tower = createTower(this.nextId(), type, tile, this);
     this.towers.push(tower);
     this.towerByTile.set(tileKey(tile.col, tile.row), tower);
-    this.addGold(-balance.towers[type].cost);
+    this.addGold(-tower.spent);
     this.events.emit('towerPlaced', tower);
     return 'ok';
+  }
+
+  /** Gold needed for the next level, or null at max level. */
+  upgradeCost(tower: Tower): number | null {
+    return tower.level >= MAX_LEVEL ? null : balance.towers[tower.type].levels[tower.level].cost;
+  }
+
+  upgradeTower(tower: Tower): UpgradeResult {
+    const cost = this.upgradeCost(tower);
+    if (cost === null) return 'max';
+    if (this.state.gold < cost || this.isOver()) return 'gold';
+    tower.level++;
+    tower.spent += cost;
+    this.addGold(-cost);
+    this.events.emit('towerUpgraded', tower);
+    return 'ok';
+  }
+
+  sellValue(tower: Tower): number {
+    // Epsilon: 90 * 0.7 is 62.999... in floating point.
+    return Math.floor(tower.spent * balance.sellRefund + 1e-9);
+  }
+
+  /** Removes the tower and refunds part of its cost. Returns the refund. */
+  sellTower(tower: Tower): number {
+    const i = this.towers.indexOf(tower);
+    if (i < 0 || this.isOver()) return 0;
+    this.towers.splice(i, 1);
+    this.towerByTile.delete(tileKey(tower.tile.col, tower.tile.row));
+    const refund = this.sellValue(tower);
+    this.addGold(refund);
+    this.events.emit('towerSold', { tower, refund });
+    return refund;
   }
 
   towerAt(tile: Tile): Tower | undefined {
@@ -129,6 +163,10 @@ export class Game {
   }
 
   // ---- internals ----
+
+  private isOver(): boolean {
+    return this.state.phase === 'gameover' || this.state.phase === 'victory';
+  }
 
   private setPhase(phase: Phase): void {
     if (this.state.phase === phase) return;

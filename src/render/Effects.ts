@@ -214,6 +214,10 @@ const col = {
   portal: new Color(palette.portal),
   portalCore: new Color(palette.portalCore),
   leak: new Color('#ff5a4a'),
+  ice: new Color('#9fe6ff'),
+  iceCore: new Color('#ffffff'),
+  boom: new Color('#ff9a3c'),
+  upgrade: new Color('#ffe066'),
   enemy: {
     basic: new Color(enemyColors.basic),
     fast: new Color(enemyColors.fast),
@@ -246,7 +250,17 @@ export class Effects {
       this.popups.show(`+${e.reward}`, e.pos.x, PATH_Y + 0.75, e.pos.z);
     });
     ev.on('projectileHit', (p) => {
-      this.sparks.burst(4, p.pos.x, PATH_Y + 0.4, p.pos.z, 2, 1.5, 0.22, 0.04, col.spark, 5);
+      const y = PATH_Y + 0.4;
+      if (p.kind === 'cannon') {
+        // Explosion sized to the splash radius.
+        const r = p.splash;
+        this.sparks.burst(10, p.pos.x, y, p.pos.z, 3 * r, 2, 0.3, 0.06, col.boom, 5);
+        this.puffs.burst(8, p.pos.x, PATH_Y + 0.15, p.pos.z, 2.2 * r, 0.8, 0.5, 0.12, col.smoke, -0.4);
+      } else if (p.kind === 'frost') {
+        this.sparks.burst(6, p.pos.x, y, p.pos.z, 1.6, 1.2, 0.35, 0.05, col.ice, 2);
+      } else {
+        this.sparks.burst(4, p.pos.x, y, p.pos.z, 2, 1.5, 0.22, 0.04, col.spark, 5);
+      }
     });
     ev.on('enemyLeaked', () => {
       this.sparks.burst(12, castle.x, castle.y + 0.5, castle.z, 2, 2.5, 0.5, 0.06, col.leak, 5);
@@ -269,12 +283,32 @@ export class Effects {
     }
   }
 
-  /** Flash + smoke at a barrel tip. dirX/dirZ: unit firing direction. */
-  muzzle(x: number, y: number, z: number, dirX: number, dirZ: number): void {
-    this.sparks.emit(x, y, z, dirX * 1.5, 0, dirZ * 1.5, 0.09, 0.13, col.hot);
+  /** Flash (+ smoke when `smoky`) at a weapon tip. dirX/dirZ: unit firing direction. */
+  muzzle(x: number, y: number, z: number, dirX: number, dirZ: number, smoky = true): void {
+    this.sparks.emit(x, y, z, dirX * 1.5, 0, dirZ * 1.5, 0.09, smoky ? 0.13 : 0.07, col.hot);
+    if (!smoky) return;
     for (let k = 0; k < 3; k++) {
       this.puffs.emit(x, y, z, dirX * (1 + Math.random()) + (Math.random() - 0.5) * 0.6, 0.5 + Math.random() * 0.4, dirZ * (1 + Math.random()) + (Math.random() - 0.5) * 0.6, 0.45, 0.06 + Math.random() * 0.03, col.smoke, -0.3);
     }
+  }
+
+  /** Icy burst from a frost tower's crystals. */
+  frostPulse(x: number, y: number, z: number): void {
+    this.sparks.burst(5, x, y, z, 1.4, 0.6, 0.35, 0.05, col.ice, -0.5);
+    this.sparks.emit(x, y, z, 0, 0.3, 0, 0.12, 0.12, col.iceCore);
+  }
+
+  /** Golden sparkle column when a tower levels up. */
+  upgrade(x: number, z: number, height: number): void {
+    for (let k = 0; k < 18; k++) {
+      const a = (k / 18) * Math.PI * 2;
+      this.sparks.emit(x + Math.cos(a) * 0.4, 0.1 + Math.random() * height, z + Math.sin(a) * 0.4, Math.cos(a) * 0.3, 1.2 + Math.random(), Math.sin(a) * 0.3, 0.6 + Math.random() * 0.3, 0.05, col.upgrade, 0.5);
+    }
+  }
+
+  /** Floating coin label, e.g. a sell refund. */
+  popup(text: string, x: number, y: number, z: number): void {
+    this.popups.show(text, x, y, z);
   }
 
   /** dt: simulated seconds (0 while paused). */

@@ -36,7 +36,10 @@ export function setupOverlays(game: Game, onRestart: () => void): void {
     endWave.textContent = `${game.state.wave}/${game.totalWaves}`;
     endLives.textContent = String(game.state.lives);
     // Let the last death puff play before the panel slides in.
-    setTimeout(() => (overlay.hidden = false), win ? 700 : 400);
+    setTimeout(() => {
+      // Skip if the game was restarted during the delay.
+      if (game.state.phase === phase) overlay.hidden = false;
+    }, win ? 700 : 400);
   });
 
   // ---- wave banner ----

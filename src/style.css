@@ -588,6 +588,190 @@ body {
   pointer-events: none;
 }
 
+
+/* ---- icon buttons (mute, close) ---- */
+.icon-btn {
+  padding: 6px 10px;
+}
+
+#btn-mute .ico-off,
+#btn-mute.muted .ico-on {
+  display: none;
+}
+
+#btn-mute.muted .ico-off {
+  display: block;
+}
+
+#btn-mute.muted {
+  color: var(--muted);
+}
+
+/* ---- selected tower panel (replaces the build cards while open) ---- */
+.tower-panel {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 6px 8px;
+  border: 1.5px solid var(--panel-edge);
+  border-radius: 18px;
+  background: var(--panel);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: panel-in 0.18s ease-out;
+}
+
+.tower-panel[hidden] {
+  display: none;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+#hud.inspecting .tower-btn,
+#hud.inspecting .hint {
+  display: none;
+}
+
+.tp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tp-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.05rem;
+}
+
+.tp-pips {
+  display: flex;
+  gap: 3px;
+}
+
+.tp-pips i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.25);
+}
+
+.tp-pips i.on {
+  background: var(--gold);
+  box-shadow: 0 0 6px rgba(255, 207, 63, 0.6);
+}
+
+.tp-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.tp-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.tp-stats b {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tp-stats .ico {
+  width: 15px;
+  height: 15px;
+}
+
+.tp-extra:empty {
+  display: none;
+}
+
+.tp-extra {
+  color: #9fe6ff;
+}
+
+.tp-upgrade,
+.tp-sell {
+  flex-direction: column;
+  gap: 0;
+  min-width: 84px;
+  min-height: 56px;
+  line-height: 1.05;
+  font-size: 0.95rem;
+}
+
+.tp-upgrade {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 4px;
+  max-width: 120px;
+}
+
+.tp-upgrade .cost-wrap {
+  color: #fff6c8;
+  font-size: 0.9rem;
+}
+
+.tp-upgrade.unaffordable .cost-wrap {
+  color: #ffd2d2;
+}
+
+.tp-upgrade:disabled {
+  filter: grayscale(0.6);
+  opacity: 0.75;
+}
+
+.tp-upgrade.maxed .cost-wrap {
+  display: none;
+}
+
+.tp-sell .cost-wrap {
+  font-size: 0.9rem;
+}
+
+/* ---- loading ---- */
+#loading {
+  z-index: 9;
+  background: var(--bg);
+  transition: opacity 0.35s ease;
+}
+
+#loading.done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.load-track {
+  width: 220px;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.load-fill {
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  transition: width 0.15s ease;
+}
+
 /* Small landscape phones: tighten things up but keep 44px targets. */
 @media (max-height: 420px) {
   :root {
@@ -628,6 +812,34 @@ body {
   }
   .hint {
     display: none;
+  }
+  /* Compact build cards: icon over cost, no name. */
+  .tower-btn {
+    flex-direction: column;
+    gap: 0;
+    padding: 4px 8px;
+  }
+  .tower-btn .name {
+    display: none;
+  }
+  .tower-art {
+    width: 34px;
+    height: 34px;
+  }
+  .tower-panel {
+    min-height: 56px;
+    gap: 6px;
+  }
+  .tower-panel .tower-art {
+    display: none;
+  }
+  .tp-stats {
+    font-size: 0.78rem;
+  }
+  .tp-upgrade,
+  .tp-sell {
+    min-width: 70px;
+    min-height: 50px;
   }
 }
 

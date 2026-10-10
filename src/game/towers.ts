@@ -1,11 +1,33 @@
-import { balance } from '../config/balance';
+import { balance, type TowerStats } from '../config/balance';
 import type { Game } from './Game';
 import { fireProjectile } from './projectiles';
 import type { Enemy, Tile, Tower, TowerType } from './types';
 
+export const MAX_LEVEL = 3;
+
+export function buildCost(type: TowerType): number {
+  return balance.towers[type].levels[0].cost;
+}
+
+/** Current stats for a tower's level. */
+export function towerStats(tower: Tower): TowerStats {
+  return balance.towers[tower.type].levels[tower.level - 1];
+}
+
 export function createTower(id: number, type: TowerType, tile: Tile, game: Game): Tower {
   const pos = game.grid.tileToWorld(tile, { x: 0, z: 0 });
-  return { id, type, level: 1, tile: { ...tile }, pos, cooldown: 0, target: null, targetId: 0, aim: 0 };
+  return {
+    id,
+    type,
+    level: 1,
+    spent: buildCost(type),
+    tile: { ...tile },
+    pos,
+    cooldown: 0,
+    target: null,
+    targetId: 0,
+    aim: 0,
+  };
 }
 
 /** Nearest active enemy within range, or null. */
@@ -30,7 +52,7 @@ export function findTarget(game: Game, tower: Tower, range: number): Enemy | nul
 
 export function updateTowers(game: Game, dt: number): void {
   for (const tower of game.towers) {
-    const stats = balance.towers[tower.type];
+    const stats = towerStats(tower);
     tower.cooldown = Math.max(0, tower.cooldown - dt);
     const target = findTarget(game, tower, stats.range);
     tower.target = target;
@@ -38,7 +60,7 @@ export function updateTowers(game: Game, dt: number): void {
     if (!target) continue;
     tower.aim = Math.atan2(target.pos.x - tower.pos.x, target.pos.z - tower.pos.z);
     if (tower.cooldown === 0) {
-      fireProjectile(game, tower.pos, target, stats.projectileSpeed, stats.damage);
+      fireProjectile(game, tower.pos, target, stats, tower.type);
       tower.cooldown = 1 / stats.fireRate;
     }
   }

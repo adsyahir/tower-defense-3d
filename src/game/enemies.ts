@@ -15,6 +15,8 @@ export function createEnemy(): Enemy {
     distance: 0,
     pos: { x: 0, z: 0 },
     dir: { x: 1, z: 0 },
+    slowFactor: 1,
+    slowTime: 0,
   };
 }
 
@@ -28,6 +30,8 @@ export function spawnEnemy(game: Game, type: EnemyType): Enemy {
   e.reward = stats.reward;
   e.lifeCost = stats.lifeCost;
   e.distance = 0;
+  e.slowFactor = 1;
+  e.slowTime = 0;
   game.path.positionAt(0, e.pos, e.dir);
   game.events.emit('enemySpawned', e);
   return e;
@@ -38,7 +42,19 @@ export function updateEnemies(game: Game, dt: number): void {
   for (let i = 0; i < items.length; i++) {
     const e = items[i];
     if (!e.active) continue;
-    e.distance += e.speed * dt;
+    let moveTime = dt;
+    if (e.slowTime > 0) {
+      // Slowed for part (or all) of this step.
+      const slowed = Math.min(dt, e.slowTime);
+      e.distance += e.speed * e.slowFactor * slowed;
+      moveTime -= slowed;
+      e.slowTime -= slowed;
+      if (e.slowTime <= 1e-9) {
+        e.slowTime = 0;
+        e.slowFactor = 1;
+      }
+    }
+    e.distance += e.speed * moveTime;
     game.path.positionAt(e.distance, e.pos, e.dir);
     if (e.distance >= game.path.totalLength) {
       game.enemies.release(e);
@@ -58,4 +74,11 @@ export function damageEnemy(game: Game, e: Enemy, amount: number): void {
     game.events.emit('enemyKilled', e);
     game.addGold(e.reward);
   }
+}
+
+/** Applies a slow; a stronger or longer slow wins over a weaker one. */
+export function slowEnemy(e: Enemy, factor: number, duration: number): void {
+  if (!e.active) return;
+  e.slowFactor = e.slowTime > 0 ? Math.min(e.slowFactor, factor) : factor;
+  e.slowTime = Math.max(e.slowTime, duration);
 }

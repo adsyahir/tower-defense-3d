@@ -12,7 +12,7 @@ export interface Tile {
 export type Phase = 'build' | 'wave' | 'gameover' | 'victory';
 
 export type EnemyType = 'basic' | 'fast' | 'tank';
-export type TowerType = 'basic';
+export type TowerType = 'arrow' | 'cannon' | 'frost';
 
 export interface MapDef {
   cols: number;
@@ -35,12 +35,19 @@ export interface Enemy {
   pos: Vec2;
   /** Unit direction of travel. */
   dir: Vec2;
+  /** Speed multiplier while slowed (1 = normal). */
+  slowFactor: number;
+  /** Seconds of slow remaining. */
+  slowTime: number;
 }
 
 export interface Tower {
   id: number;
   type: TowerType;
+  /** 1-based; stats come from balance.towers[type].levels[level - 1]. */
   level: number;
+  /** Total gold invested (build + upgrades), for the sell refund. */
+  spent: number;
   tile: Tile;
   pos: Vec2;
   cooldown: number;
@@ -60,6 +67,13 @@ export interface Projectile {
   lastTargetPos: Vec2;
   speed: number;
   damage: number;
+  /** Tower type that fired it (render uses this for the look). */
+  kind: TowerType;
+  /** Area damage radius on impact; 0 = single target. */
+  splash: number;
+  /** Speed multiplier applied on hit; 1 = no slow. */
+  slow: number;
+  slowDuration: number;
 }
 
 export interface GameState {

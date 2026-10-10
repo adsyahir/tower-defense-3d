@@ -51,6 +51,49 @@
         <rect x="21" y="34.5" width="6" height="6.5" rx="1" fill="#4a3328" />
         <rect x="8.5" y="40" width="31" height="5" rx="1.6" fill="#8f8577" stroke="#5b5146" stroke-width="2.5" />
       </symbol>
+      <symbol id="i-ballista" viewBox="0 0 48 48">
+        <path d="M23.3 22V7.5h1.4V22z" fill="#8a5a3a" />
+        <path d="M24 3.5l3.4 5.2h-6.8z" fill="#dfe5ea" stroke="#5b5146" stroke-width="1.4" stroke-linejoin="round" />
+        <path d="M9.5 20.5Q24 9.5 38.5 20.5" fill="none" stroke="#7a4a2a" stroke-width="3.4" stroke-linecap="round" />
+        <path d="M10 20.5L24 24.5 38 20.5" fill="none" stroke="#f3e6c8" stroke-width="1.4" />
+        <path d="M12 41V26h3v-3h4v3h3v-3h4v3h3v-3h4v3h3v15z" fill="#d8cfbf" stroke="#5b5146" stroke-width="2.5" stroke-linejoin="round" />
+        <rect x="21" y="33.5" width="6" height="7.5" rx="1" fill="#4a3328" />
+        <rect x="8.5" y="40" width="31" height="5" rx="1.6" fill="#8f8577" stroke="#5b5146" stroke-width="2.5" />
+      </symbol>
+      <symbol id="i-frost" viewBox="0 0 48 48">
+        <path d="M15 11.5l3.2 7-3.2 7.5-3.2-7.5z" fill="#bdf0ff" stroke="#2a6f9a" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M33 11.5l3.2 7-3.2 7.5-3.2-7.5z" fill="#bdf0ff" stroke="#2a6f9a" stroke-width="1.8" stroke-linejoin="round" />
+        <path d="M24 3.5l5.2 10.5L24 27l-5.2-13z" fill="#8fe3ff" stroke="#2a6f9a" stroke-width="2" stroke-linejoin="round" />
+        <path d="M23 8l-1.6 5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+        <rect x="12" y="26" width="24" height="15" rx="3" fill="#cfd8e8" stroke="#4a5670" stroke-width="2.5" />
+        <rect x="12" y="30" width="24" height="3.5" fill="#5a86c9" />
+        <rect x="21" y="34.5" width="6" height="6.5" rx="1" fill="#2f3d5c" />
+        <rect x="8.5" y="40" width="31" height="5" rx="1.6" fill="#8f8577" stroke="#5b5146" stroke-width="2.5" />
+      </symbol>
+      <symbol id="i-up" viewBox="0 0 24 24">
+        <path d="M12 4.5l7 7.5h-4.2v7.5H9.2V12H5z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-sound" viewBox="0 0 24 24">
+        <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        <path d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-mute" viewBox="0 0 24 24">
+        <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+        <path d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-dmg" viewBox="0 0 24 24">
+        <path d="M5 19L16 8M14 5.5l4.5 4.5M5 19l-1.5 1.5M8.5 15.5l-2-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-range" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2.4" />
+        <circle cx="12" cy="12" r="2.4" fill="currentColor" />
+      </symbol>
+      <symbol id="i-rate" viewBox="0 0 24 24">
+        <path d="M13.5 3L6 13.5h5L10 21l8-11h-5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
+      </symbol>
       <symbol id="i-trophy" viewBox="0 0 48 48">
         <path d="M14 9h20v9a10 10 0 0 1-20 0z" fill="#ffcf3f" stroke="#8a5d08" stroke-width="2.6" stroke-linejoin="round" />
         <path d="M14 12H8.5a6 6 0 0 0 6.5 9M34 12h5.5a6 6 0 0 1-6.5 9" fill="none" stroke="#8a5d08" stroke-width="2.6" stroke-linecap="round" />
@@ -78,16 +121,53 @@
           <div class="stat lives" title="Lives"><svg class="ico"><use href="#i-heart" /></svg><span id="lives">0</span></div>
           <div class="stat wave" title="Wave"><svg class="ico"><use href="#i-flag" /></svg><span class="label">Wave</span><span id="wave">0/0</span></div>
           <span class="spacer"></span>
+          <button id="btn-mute" class="btn icon-btn" aria-label="Mute sound"><svg class="ico ico-on"><use href="#i-sound" /></svg><svg class="ico ico-off"><use href="#i-mute" /></svg></button>
           <button id="btn-speed" class="btn speed-btn" aria-label="Game speed"><svg class="ico"><use href="#i-ff" /></svg><span id="speed-label">1×</span></button>
         </div>
         <div class="bar bottom">
-          <button class="btn tower-btn" data-tower="basic" aria-label="Build cannon tower">
-            <svg class="tower-art"><use href="#i-tower" /></svg>
+          <button class="btn tower-btn" data-tower="arrow">
+            <svg class="tower-art"><use href="#i-ballista" /></svg>
             <span class="tower-info">
-              <span class="name">Cannon</span>
+              <span class="name"></span>
               <span class="cost-wrap"><svg class="ico"><use href="#i-coin" /></svg><span class="cost">0</span></span>
             </span>
           </button>
+          <button class="btn tower-btn" data-tower="cannon">
+            <svg class="tower-art"><use href="#i-tower" /></svg>
+            <span class="tower-info">
+              <span class="name"></span>
+              <span class="cost-wrap"><svg class="ico"><use href="#i-coin" /></svg><span class="cost">0</span></span>
+            </span>
+          </button>
+          <button class="btn tower-btn" data-tower="frost">
+            <svg class="tower-art"><use href="#i-frost" /></svg>
+            <span class="tower-info">
+              <span class="name"></span>
+              <span class="cost-wrap"><svg class="ico"><use href="#i-coin" /></svg><span class="cost">0</span></span>
+            </span>
+          </button>
+          <div id="tower-panel" class="tower-panel" hidden>
+            <svg class="tower-art"><use href="#i-tower" /></svg>
+            <div class="tp-info">
+              <div class="tp-title"><span class="tp-name"></span><span class="tp-pips"><i></i><i></i><i></i></span></div>
+              <div class="tp-stats">
+                <span title="Damage"><svg class="ico"><use href="#i-dmg" /></svg><b class="tp-dmg"></b></span>
+                <span title="Range"><svg class="ico"><use href="#i-range" /></svg><b class="tp-range"></b></span>
+                <span title="Shots per second"><svg class="ico"><use href="#i-rate" /></svg><b class="tp-rate"></b></span>
+                <span class="tp-extra"></span>
+              </div>
+            </div>
+            <button class="btn primary tp-upgrade">
+              <svg class="ico"><use href="#i-up" /></svg>
+              <span class="tp-upgrade-label">Upgrade</span>
+              <span class="cost-wrap"><svg class="ico"><use href="#i-coin" /></svg><span class="tp-upgrade-cost">0</span></span>
+            </button>
+            <button class="btn tp-sell">
+              <span>Sell</span>
+              <span class="cost-wrap"><svg class="ico"><use href="#i-coin" /></svg><span class="tp-sell-value">0</span></span>
+            </button>
+            <button class="btn icon-btn tp-close" aria-label="Close"><svg class="ico"><use href="#i-close" /></svg></button>
+          </div>
           <span class="hint">Tap a grass tile to build</span>
           <span class="spacer"></span>
           <button id="btn-wave" class="btn primary wave-btn">
@@ -114,6 +194,13 @@
             <div class="end-stat"><svg class="ico"><use href="#i-heart" /></svg><span id="end-lives">0</span></div>
           </div>
           <button class="btn primary big"><svg class="ico"><use href="#i-replay" /></svg><span>Play again</span></button>
+        </div>
+      </div>
+
+      <div id="loading" class="overlay">
+        <div class="panel">
+          <div class="title">Building towers…</div>
+          <div class="load-track"><div class="load-fill"></div></div>
         </div>
       </div>
 

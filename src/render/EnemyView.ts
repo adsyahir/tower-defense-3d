@@ -87,6 +87,7 @@ export class EnemyView {
   private readonly dummy = new Object3D();
   private readonly white = new Color(1, 1, 1);
   private readonly hot = new Color(3, 2.6, 2.4);
+  private readonly icy = new Color(0.55, 0.85, 1.45);
 
   constructor(parent: Object3D, private game: Game) {
     const n = game.enemies.items.length;
@@ -150,7 +151,7 @@ export class EnemyView {
       d.scale.set(sxz, sy, sxz);
       d.updateMatrix();
       mesh.setMatrixAt(idx, d.matrix);
-      mesh.setColorAt(idx, this.flash[i] > 0 ? this.hot : this.white);
+      mesh.setColorAt(idx, this.flash[i] > 0 ? this.hot : e.slowTime > 0 ? this.icy : this.white);
     }
     markDirty(basic);
     markDirty(fast);

@@ -8,12 +8,23 @@ export interface EnemyStats {
 }
 
 export interface TowerStats {
+  /** Level 1: build cost. Higher levels: upgrade cost to reach that level. */
   cost: number;
   range: number;
   /** Shots per second. */
   fireRate: number;
   damage: number;
   projectileSpeed: number;
+  /** Area damage radius; omitted = single target. */
+  splash?: number;
+  /** Speed multiplier applied to targets hit (0.5 = half speed); omitted = no slow. */
+  slow?: number;
+  slowDuration?: number;
+}
+
+export interface TowerDef {
+  name: string;
+  levels: TowerStats[];
 }
 
 export interface WaveGroup {
@@ -41,8 +52,33 @@ export const balance = {
     tank: { hp: 120, speed: 0.9, reward: 15, lifeCost: 3 },
   } satisfies Record<EnemyType, EnemyStats>,
   towers: {
-    basic: { cost: 50, range: 2.5, fireRate: 1.5, damage: 10, projectileSpeed: 8 },
-  } satisfies Record<TowerType, TowerStats>,
+    arrow: {
+      name: 'Ballista',
+      levels: [
+        { cost: 40, range: 2.6, fireRate: 2, damage: 5, projectileSpeed: 12 },
+        { cost: 50, range: 2.9, fireRate: 2.4, damage: 8, projectileSpeed: 13 },
+        { cost: 90, range: 3.2, fireRate: 3, damage: 12, projectileSpeed: 14 },
+      ],
+    },
+    cannon: {
+      name: 'Cannon',
+      levels: [
+        { cost: 70, range: 2.3, fireRate: 0.75, damage: 22, projectileSpeed: 7.5, splash: 0.9 },
+        { cost: 80, range: 2.5, fireRate: 0.85, damage: 34, projectileSpeed: 8, splash: 1.05 },
+        { cost: 140, range: 2.7, fireRate: 0.95, damage: 50, projectileSpeed: 8.5, splash: 1.2 },
+      ],
+    },
+    frost: {
+      name: 'Frost',
+      levels: [
+        { cost: 60, range: 2.2, fireRate: 1.2, damage: 3, projectileSpeed: 9, slow: 0.55, slowDuration: 1.5 },
+        { cost: 60, range: 2.5, fireRate: 1.4, damage: 5, projectileSpeed: 10, slow: 0.45, slowDuration: 2 },
+        { cost: 110, range: 2.8, fireRate: 1.6, damage: 8, projectileSpeed: 11, slow: 0.35, slowDuration: 2.5 },
+      ],
+    },
+  } as Record<TowerType, TowerDef>,
+  /** Share of the gold spent on a tower that selling returns. */
+  sellRefund: 0.7,
   waves: [
     [{ type: 'basic', count: 6, interval: 1.2, delay: 0 }],
     [{ type: 'basic', count: 10, interval: 1, delay: 0 }],

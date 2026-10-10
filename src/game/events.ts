@@ -5,6 +5,8 @@ export interface GameEvents {
   enemyKilled: Enemy;
   enemyLeaked: Enemy;
   towerPlaced: Tower;
+  towerUpgraded: Tower;
+  towerSold: { tower: Tower; refund: number };
   placeFailed: { tile: Tile; reason: 'blocked' | 'gold' };
   projectileFired: Projectile;
   projectileHit: Projectile;

@@ -15,14 +15,20 @@ export function createDebugGui({ game, r3d, hud }: { game: Game; r3d: Renderer3D
   gui.domElement.style.top = 'calc(56px + env(safe-area-inset-top))';
 
   const towers = gui.addFolder('Towers');
-  for (const [type, stats] of Object.entries(balance.towers)) {
-    const f = towers.addFolder(type);
-    f.add(stats, 'cost', 0, 500, 5).onChange(() => hud.refreshAffordable());
-    f.add(stats, 'range', 0.5, 8, 0.1);
-    f.add(stats, 'damage', 1, 200, 1);
-    f.add(stats, 'fireRate', 0.1, 10, 0.1);
-    f.add(stats, 'projectileSpeed', 1, 30, 0.5);
+  for (const def of Object.values(balance.towers)) {
+    def.levels.forEach((stats, i) => {
+      const f = towers.addFolder(`${def.name} L${i + 1}`);
+      f.add(stats, 'cost', 0, 500, 5).onChange(() => hud.refreshAffordable());
+      f.add(stats, 'range', 0.5, 8, 0.1);
+      f.add(stats, 'damage', 1, 200, 1);
+      f.add(stats, 'fireRate', 0.1, 10, 0.1);
+      f.add(stats, 'projectileSpeed', 1, 30, 0.5);
+      if (stats.splash !== undefined) f.add(stats, 'splash', 0, 3, 0.05);
+      if (stats.slow !== undefined) f.add(stats, 'slow', 0.05, 1, 0.05);
+      f.close();
+    });
   }
+  towers.close();
 
   const enemies = gui.addFolder('Enemies');
   for (const [type, stats] of Object.entries(balance.enemies)) {

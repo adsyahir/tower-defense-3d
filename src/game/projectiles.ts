@@ -1,6 +1,7 @@
+import type { TowerStats } from '../config/balance';
 import type { Game } from './Game';
-import { damageEnemy } from './enemies';
-import type { Enemy, Projectile, Vec2 } from './types';
+import { damageEnemy, slowEnemy } from './enemies';
+import type { Enemy, Projectile, TowerType, Vec2 } from './types';
 
 const HIT_RADIUS = 0.2;
 
@@ -14,10 +15,14 @@ export function createProjectile(): Projectile {
     lastTargetPos: { x: 0, z: 0 },
     speed: 0,
     damage: 0,
+    kind: 'arrow',
+    splash: 0,
+    slow: 1,
+    slowDuration: 0,
   };
 }
 
-export function fireProjectile(game: Game, from: Vec2, target: Enemy, speed: number, damage: number): Projectile {
+export function fireProjectile(game: Game, from: Vec2, target: Enemy, stats: TowerStats, kind: TowerType): Projectile {
   const p = game.projectiles.acquire();
   p.id = game.nextId();
   p.pos.x = from.x;
@@ -26,13 +31,25 @@ export function fireProjectile(game: Game, from: Vec2, target: Enemy, speed: num
   p.targetId = target.id;
   p.lastTargetPos.x = target.pos.x;
   p.lastTargetPos.z = target.pos.z;
-  p.speed = speed;
-  p.damage = damage;
+  p.speed = stats.projectileSpeed;
+  p.damage = stats.damage;
+  p.kind = kind;
+  p.splash = stats.splash ?? 0;
+  p.slow = stats.slow ?? 1;
+  p.slowDuration = stats.slowDuration ?? 0;
   game.events.emit('projectileFired', p);
   return p;
 }
 
-/** Homing projectiles. If the target dies first, they fly to its last position and fizzle. */
+function hitEnemy(game: Game, p: Projectile, e: Enemy): void {
+  if (p.slow < 1) slowEnemy(e, p.slow, p.slowDuration);
+  damageEnemy(game, e, p.damage);
+}
+
+/**
+ * Homing projectiles. If the target dies first, they fly to its last position:
+ * splash shots still explode there, single-target shots fizzle.
+ */
 export function updateProjectiles(game: Game, dt: number): void {
   const items = game.projectiles.items;
   for (let i = 0; i < items.length; i++) {
@@ -52,9 +69,20 @@ export function updateProjectiles(game: Game, dt: number): void {
       p.pos.x = p.lastTargetPos.x;
       p.pos.z = p.lastTargetPos.z;
       game.projectiles.release(p);
-      if (alive) {
+      if (p.splash > 0) {
         game.events.emit('projectileHit', p);
-        damageEnemy(game, t, p.damage);
+        const r2 = p.splash * p.splash;
+        const enemies = game.enemies.items;
+        for (let k = 0; k < enemies.length; k++) {
+          const e = enemies[k];
+          if (!e.active) continue;
+          const ex = e.pos.x - p.pos.x;
+          const ez = e.pos.z - p.pos.z;
+          if (ex * ex + ez * ez <= r2) hitEnemy(game, p, e);
+        }
+      } else if (alive) {
+        game.events.emit('projectileHit', p);
+        hitEnemy(game, p, t);
       }
       p.target = null;
       continue;

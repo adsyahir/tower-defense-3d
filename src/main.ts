@@ -1,13 +1,15 @@
 import './style.css';
 import { Clock } from 'three';
 import { registerSW } from 'virtual:pwa-register';
+import { Sound } from './audio/Sound';
 import { map01 } from './config/map01';
-import { balance } from './config/balance';
 import { createFpsCounter } from './debug/fps';
 import { Game } from './game/Game';
-import type { Tile, TowerType } from './game/types';
+import { buildCost } from './game/towers';
+import type { Tile, Tower, TowerType } from './game/types';
 import { Picker } from './input/Picker';
 import { portraitQuery } from './platform/device';
+import { loadAssets } from './render/assets';
 import { CameraRig } from './render/CameraRig';
 import { Effects } from './render/Effects';
 import { EnemyView } from './render/EnemyView';
@@ -15,6 +17,7 @@ import { HealthBars } from './render/HealthBars';
 import { MapView } from './render/MapView';
 import { ProjectileView } from './render/ProjectileView';
 import { Renderer3D } from './render/Renderer3D';
+import { TowerModels } from './render/towerModels';
 import { TowerView } from './render/TowerView';
 import { Hud } from './ui/Hud';
 import { setupOverlays } from './ui/overlays';
@@ -24,6 +27,12 @@ registerSW({ immediate: true });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 
 // ---- setup ----
+const loading = document.querySelector<HTMLElement>('#loading')!;
+const loadFill = loading.querySelector<HTMLElement>('.load-fill')!;
+const assets = await loadAssets((f) => (loadFill.style.width = `${Math.round(f * 100)}%`));
+loading.classList.add('done');
+setTimeout(() => loading.remove(), 400);
+
 const game = new Game(map01);
 const r3d = new Renderer3D(document.querySelector<HTMLElement>('#scene')!, map01);
 const rig = new CameraRig(r3d.canvas, map01);
@@ -35,18 +44,24 @@ scene.add(mapView.group);
 const effects = new Effects(scene, game, mapView.portalPos, mapView.castlePos);
 const enemyView = new EnemyView(scene, game);
 const healthBars = new HealthBars(scene, game.enemies.items, rig.camera);
-const projectileView = new ProjectileView(scene, game.projectiles.items);
-const towerView = new TowerView(scene, game, effects);
+const towerView = new TowerView(scene, game, effects, new TowerModels(assets), assets);
+const projectileView = new ProjectileView(scene, game, (x, z) => towerView.launchY(x, z));
+const sound = new Sound(game);
 const picker = new Picker(r3d.canvas, rig.camera, game.grid);
 
 // ---- interaction: build mode & selection ----
 let buildType: TowerType | null = null;
 let speed = 1;
 
+function select(tower: Tower | null): void {
+  towerView.select(tower);
+  hud.inspect(tower);
+}
+
 function setBuildType(type: TowerType | null): void {
   buildType = type;
   hud.setBuildType(type);
-  if (type) towerView.select(null);
+  if (type) select(null);
   else {
     mapView.hideHighlight();
     towerView.showGhost(null, false);
@@ -54,33 +69,54 @@ function setBuildType(type: TowerType | null): void {
 }
 
 const hud = new Hud(game, {
-  onTowerButton: (type) => setBuildType(buildType === type ? null : type),
+  onTowerButton: (type) => {
+    sound.play('click');
+    setBuildType(buildType === type ? null : type);
+  },
   onStartWave: () => game.startWave(),
   onSpeed: () => {
+    sound.play('click');
     speed = speed === 1 ? 2 : 1;
     hud.setSpeed(speed);
   },
+  onMute: () => {
+    hud.setMuted(sound.toggleMute());
+    sound.play('click');
+  },
+  onUpgrade: (tower) => {
+    const result = game.upgradeTower(tower);
+    if (result === 'gold') {
+      sound.play('error');
+      hud.pulse();
+    }
+  },
+  onSell: (tower) => {
+    select(null);
+    game.sellTower(tower);
+  },
+  onClosePanel: () => select(null),
 });
+hud.setMuted(sound.isMuted);
 
 picker.onTap = (tile: Tile | null) => {
   if (!tile) {
-    towerView.select(null);
+    select(null);
     mapView.hideHighlight();
     return;
   }
   const tower = game.towerAt(tile);
   if (tower) {
     setBuildType(null);
-    towerView.select(towerView.selection === tower ? null : tower);
+    select(towerView.selection === tower ? null : tower);
     return;
   }
-  towerView.select(null);
+  select(null);
   if (buildType) {
     const result = game.placeTower(buildType, tile);
     mapView.flash(tile, result === 'ok');
     towerView.showGhost(null, false);
     // Leave build mode once the next tower is unaffordable.
-    if (result === 'ok' && game.state.gold < balance.towers[buildType].cost) setBuildType(null);
+    if (result === 'ok' && game.state.gold < buildCost(buildType)) setBuildType(null);
   } else {
     mapView.flash(tile, game.canPlace(tile));
   }
@@ -90,9 +126,9 @@ const ghostPos = { x: 0, z: 0 };
 picker.onHover = (tile) => {
   if (!buildType) return;
   if (tile && !game.towerAt(tile)) {
-    const ok = game.canPlace(tile) && game.state.gold >= balance.towers[buildType].cost;
+    const ok = game.canPlace(tile) && game.state.gold >= buildCost(buildType);
     mapView.showHighlight(tile, ok);
-    towerView.showGhost(game.grid.tileToWorld(tile, ghostPos), ok);
+    towerView.showGhost(game.grid.tileToWorld(tile, ghostPos), ok, buildType);
   } else {
     mapView.hideHighlight();
     towerView.showGhost(null, false);
@@ -102,12 +138,15 @@ picker.onHover = (tile) => {
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     setBuildType(null);
-    towerView.select(null);
+    select(null);
   }
 });
 
 game.events.on('phaseChanged', (phase) => {
-  if (phase === 'gameover' || phase === 'victory') setBuildType(null);
+  if (phase === 'gameover' || phase === 'victory') {
+    setBuildType(null);
+    select(null);
+  }
 });
 
 setupOverlays(game, () => {
