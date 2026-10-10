@@ -1,0 +1,268 @@
+:root {
+  --bg: #1d2b22;
+  --panel: rgba(20, 28, 24, 0.82);
+  --text: #f4f1e8;
+  --muted: #b8c2b0;
+  --gold: #f2c94c;
+  --lives: #e05a4f;
+  --accent: #4caf50;
+  --accent-dark: #357a38;
+  --active: #3d6fb6;
+  --pad: 10px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  color: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--bg);
+}
+
+#app {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+}
+
+#scene {
+  position: absolute;
+  inset: 0;
+}
+
+#scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+/* ---- HUD ---- */
+#hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; /* let touches between buttons reach the canvas */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: var(--pad) calc(var(--pad) + env(safe-area-inset-right)) var(--pad) calc(var(--pad) + env(safe-area-inset-left));
+}
+
+.bar.top {
+  top: 0;
+  padding-top: calc(var(--pad) + env(safe-area-inset-top));
+}
+
+.bar.bottom {
+  bottom: 0;
+  padding-bottom: calc(var(--pad) + env(safe-area-inset-bottom));
+}
+
+.spacer {
+  flex: 1;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 12px;
+  border-radius: 18px;
+  background: var(--panel);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.gold .dot,
+.cost-wrap .dot {
+  background: var(--gold);
+}
+
+.lives .dot {
+  background: var(--lives);
+}
+
+.btn {
+  pointer-events: auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 14px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn.small {
+  padding: 6px 10px;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent-dark);
+}
+
+.tower-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 72px;
+  gap: 2px;
+}
+
+.tower-btn .cost-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85em;
+  color: var(--gold);
+}
+
+.tower-btn.active {
+  border-color: #fff;
+  background: var(--active);
+}
+
+.tower-btn.unaffordable .cost-wrap {
+  color: var(--lives);
+}
+
+.pulse {
+  animation: pulse 0.45s ease-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    background: var(--lives);
+  }
+  40% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ---- overlays ---- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 16, 12, 0.7);
+  text-align: center;
+}
+
+.overlay[hidden] {
+  display: none;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 420px;
+  padding: 24px 28px;
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.panel .title {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.panel .detail {
+  color: var(--muted);
+}
+
+/* Landscape first: the rotate prompt only shows in portrait. */
+#rotate {
+  display: none;
+  z-index: 10;
+  background: var(--bg);
+}
+
+@media (orientation: portrait) {
+  #rotate {
+    display: flex;
+  }
+}
+
+.rotate-icon {
+  width: 40px;
+  height: 64px;
+  border: 4px solid var(--text);
+  border-radius: 8px;
+  animation: rotate-hint 2s ease-in-out infinite;
+}
+
+@keyframes rotate-hint {
+  0%,
+  30% {
+    transform: rotate(0deg);
+  }
+  60%,
+  100% {
+    transform: rotate(90deg);
+  }
+}
+
+#fps {
+  position: fixed;
+  left: calc(8px + env(safe-area-inset-left));
+  top: 50%;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  font: 12px ui-monospace, monospace;
+  pointer-events: none;
+}
+
+/* Small landscape phones: tighten padding. */
+@media (max-height: 420px) {
+  :root {
+    --pad: 6px;
+  }
+  .stat {
+    min-height: 32px;
+    font-size: 0.9rem;
+  }
+}

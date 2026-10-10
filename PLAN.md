@@ -1,5 +1,11 @@
 # 3D Tower Defense — Implementation Plan
 
+> **Status (2026-10-10):** Stages 0–10 are implemented: playable MVP with basic shapes, debug GUI, and PWA. Phone checks on a real device and deployment are still to do. **Next: stage 11 (Kenney models, tower types, upgrades, sound).**
+> Implementation notes that differ from the text below:
+> - Views map pool slot `i` → mesh `i` (`render/MeshPool.ts`) instead of acquiring meshes via spawn/remove events. This is simpler and allocation-free. Stage 11e death tweens will need a short-lived "corpse" mesh that's separate from the slot.
+> - Game state is split into `game.state` (phase/gold/lives/wave/time), `game.enemies`/`game.projectiles` (pools) and `game.towers`.
+> - In dev, `window.game` is exposed for console testing.
+
 ---
 
 ## 0. Ground rules for the implementer

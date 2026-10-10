@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#1d2b22" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>Tower Defense 3D</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="scene"></div>
+
+      <div id="hud">
+        <div class="bar top">
+          <div class="stat gold"><span class="dot"></span><span id="gold">0</span></div>
+          <div class="stat lives"><span class="dot"></span><span id="lives">0</span></div>
+          <div class="stat">Wave <span id="wave">0/0</span></div>
+          <span class="spacer"></span>
+          <button id="btn-speed" class="btn small" aria-label="Game speed">1×</button>
+        </div>
+        <div class="bar bottom">
+          <button class="btn tower-btn" data-tower="basic">
+            <span class="name">Tower</span><span class="cost-wrap"><span class="dot"></span><span class="cost">0</span></span>
+          </button>
+          <span class="spacer"></span>
+          <button id="btn-wave" class="btn primary">Start wave</button>
+        </div>
+      </div>
+
+      <div id="overlay-end" class="overlay" hidden>
+        <div class="panel">
+          <div class="title">Game over</div>
+          <div class="detail"></div>
+          <button class="btn primary">Play again</button>
+        </div>
+      </div>
+
+      <div id="rotate" class="overlay">
+        <div class="panel">
+          <div class="rotate-icon"></div>
+          <div class="title">Please rotate your device</div>
+          <div class="detail">This game plays in landscape.</div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

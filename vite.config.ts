@@ -5,6 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   // For GitHub Pages set base to '/<repo-name>/' (and keep PWA scope/start_url in sync).
   base: '/',
+  // three.js alone is ~600 kB minified (175 kB gzipped); that's expected.
+  build: { chunkSizeWarningLimit: 800 },
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
